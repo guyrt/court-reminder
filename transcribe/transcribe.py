@@ -5,7 +5,7 @@ from secrets import *
 
 # obtain path to "english.wav" in the same folder as this script
 from os import path
-AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "C:\\Users\\King_Ash\\Documents\\GitHub\\court-reminder\\storage\\RE95beae266dea9295637c66104c1d1e17.wav")
+AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), sample_wav)
 
 # use the audio file as the audio source
 r = sr.Recognizer()
