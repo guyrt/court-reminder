@@ -5,8 +5,11 @@ Place a Twilio phone call and record the outcome.
 from .secrets import *
 from twilio.rest import TwilioRestClient
 import time
+import requests
 
 class TwilioCallWrapper(object):
+
+    callback_url = 'http://13.68.220.163/record.xml'
 
     def __init__(self, call_placed_callback=None, call_done_callback=None):
         self.call_placed_callback = call_placed_callback
@@ -14,7 +17,14 @@ class TwilioCallWrapper(object):
 
         self._client = TwilioRestClient(twilio_account_sid, twilio_auth_token)
         # twilio hits this to get a record of what to do.
-        self._callback_url = 'http://13.68.220.163/record.xml'
+
+    def try_server(self):
+        try:
+            response = requests.get(self.callback_url)
+            if response.status_code != 200:
+                raise RuntimeError("Server {0} not found. Can't make calls.".format(self.callback_url))
+        except requests.exceptions.ConnectionError:
+            raise RuntimeError("Server {0} not found. Can't make calls.".format(self.callback_url))
 
     def build_dtmf_sequence(self, case_number):
         """ Sequence represents the following:
@@ -35,7 +45,7 @@ class TwilioCallWrapper(object):
 
     def place_call(self, case_number):
         send_digits = self.build_dtmf_sequence(case_number)
-        call = self._client.calls.create(to=to_phone, from_=from_phone, url=self._callback_url, record=True, send_digits=send_digits)
+        call = self._client.calls.create(to=to_phone, from_=from_phone, url=self.callback_url, record=True, send_digits=send_digits)
         if self.call_placed_callback:
             self.call_placed_callback(case_number, call.sid)
         self._handle_call(case_number, call.sid)

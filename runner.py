@@ -11,6 +11,7 @@ class CourtReminderRunner(object):
     def __init__(self):
         self._database = Database()
         self._caller = TwilioCallWrapper(self._call_placed_callback, self._call_done_callback)
+        self._caller.try_server()
 
     def call(self):
         """
@@ -30,7 +31,7 @@ class CourtReminderRunner(object):
         self._database.update_call_id(ain, call_id)
 
     def _call_done_callback(self, ain, recording_id):
-        """ 
+        """
         Download the call and reupload to azure.
 
         Update database to say that a call was started and save the recording location.
