@@ -27,28 +27,36 @@ class Database(object):
         """
         Retrieve a set of records that need a phone call
         """
+        cursor = self.connection.cursor()
+
         # todo: make this transactional to avoid double work select and update
         select_query = """
-            SELECT TOP 1 sid 
+            SELECT TOP 1 AlienRegistrationNumber
             FROM {table}
-            WHERE status == "new"
-            ORDER BY last_modified
-        """.format(table=secrets.db_tablename)
+            WHERE Status = 'new'
+            ORDER BY LastUpdatedTimestamp asc
+        """.format(table=db_tablename)
 
         # Get the sid from the transaction
+        result = cursor.execute(select_query)
+        rows = result.fetchall()
 
-        if True:  # change to if don't have a sid
+        if not rows:
             raise NoRecordsToProcessError()
+
+        ain = rows[0][0]
 
         update_query = """
             UPDATE {table}
-            SET status = "calling"
-            WHERE sid = ?
-        """.format(table=db_tablename)
+            SET Status = '{status}'
+            WHERE AlienRegistrationNumber = ?
+        """.format(table=db_tablename, status=Statuses.calling)
 
-        # update the sid
+        # update the number
+        cursor.execute(update_query, ain)
+        self.connection.commit()
 
-        #return side
+        return ain
 
     def upload_new_requests(self, request_ids):
         """
@@ -60,12 +68,12 @@ class Database(object):
             IF NOT EXISTS (
                 SELECT * 
                 FROM {table}
-                WHERE AlientRegistrationNumber = ?
+                WHERE AlienRegistrationNumber = ?
             )
 
             BEGIN
                 INSERT INTO {table}
-                (AlientRegistrationNumber, Status)
+                (AlienRegistrationNumber, Status)
                 VALUES (?, '{status}')
             END
         END
@@ -75,3 +83,18 @@ class Database(object):
         for id in request_ids:
             cursor.execute(insert_query, id, id)
             self.connection.commit()
+
+    def update_call_id(self, alien_registration_id, call_id):
+
+        update_query = """
+        UPDATE {table}
+        SET 
+            Status = '{status}',
+            CallID = ?,
+            CallTimestamp = CURRENT_TIMESTAMP
+        WHERE AlienRegistrationNumber = ?
+        """.format(table=db_tablename, status=Statuses.calling)
+
+        cursor = self.connection.cursor()
+        cursor.execute(update_query, call_id, alien_registration_id)
+        self.connection.commit()

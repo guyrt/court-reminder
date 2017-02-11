@@ -9,7 +9,7 @@ sqlcommand = """
 CREATE TABLE {db_tablename}
 (
     ID int NOT NULL IDENTITY,
-    AlientRegistrationNumber varchar(255) NOT NULL UNIQUE,
+    AlienRegistrationNumber varchar(255) NOT NULL UNIQUE,
     Status varchar(255),
     CallID varchar(255),
     CallTimestamp datetime,
