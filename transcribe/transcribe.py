@@ -5,23 +5,34 @@ from secrets import *
 
 # obtain path to "english.wav" in the same folder as this script
 from os import path
-AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), sample_wav)
+class BingTranscribe(object):
 
-# use the audio file as the audio source
-r = sr.Recognizer()
-with sr.AudioFile(AUDIO_FILE) as source:
-    audio = r.record(source) # read the entire audio file
+    def __init__(self):
+        self.bing_key = bing_speech_api_key
+        self.language="en-US"
+        self.audio_file = path.join(path.dirname(path.realpath(__file__)), sample_wav)
 
-# recognize speech using Microsoft Bing Voice Recognition
-BING_KEY = bing_speech_api_key # Microsoft Bing Voice Recognition API keys 32-character lowercase hexadecimal strings
-try:
-    result = r.recognize_bing(audio, key=BING_KEY, language = "en-US", show_all = False)
-    print("Microsoft Bing Voice Recognition thinks you said " + result)
-except sr.UnknownValueError:
-    print("Microsoft Bing Voice Recognition could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from Microsoft Bing Voice Recognition service; {0}".format(e))
+    def transcribe_audio_object(self, audio_object):    
+            try:
+                r = sr.Recognizer()
+                return r.recognize_bing(audio_object, key=self.bing_key, language = self.language, show_all = False)
+            except sr.UnknownValueError:
+                print("Microsoft Bing Voice Recognition could not understand audio")
+            except sr.RequestError as e:
+                print("Could not request results from Microsoft Bing Voice Recognition service; {0}".format(e))
 
+    def transcribe_audio_file_path(self, audio_file_path):
+        r = sr.Recognizer()
+        try:
+            with sr.AudioFile(audio_file_path) as source:
+                audio = r.record(source)       
+                return self.transcribe_audio_object(audio)
+        except sr.UnknownValueError as e:
+            print("{0}".format(e))
+
+foo = BingTranscribe()
+result=foo.transcribe_audio_file_path((foo.audio_file))
+print(result)
 
 # def text2int(textnum, numwords={}):
 #     if not numwords:
