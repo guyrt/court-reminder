@@ -20,7 +20,7 @@ class TwilioCallWrapper(object):
 
     def try_server(self):
         try:
-            response = requests.get(self.callback_url)
+            response = requests.get(callback_url)
             if response.status_code != 200:
                 raise RuntimeError("Server {0} not found. Can't make calls.".format(self.callback_url))
         except requests.exceptions.ConnectionError:
