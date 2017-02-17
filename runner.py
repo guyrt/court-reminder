@@ -38,14 +38,11 @@ class CourtReminderRunner(object):
 
         Update database to say that a call was started and save the recording location.
         """
-
-        #
-        # TODO: upload call_duration to database here. too short probably implies badness.
-        #
         print("Call duration was: {0}".format(call_duration))
         try:
             azure_path = download_and_reupload(recording_uri)
             print("Azure path: ", azure_path)
+            self._database.update_azure_path(ain, azure_path)
         except ValueError as e:
             print("Error!: {0}".format(e))
 
@@ -57,6 +54,8 @@ if __name__ == "__main__":
     while 1:
         try:
             runner.call()
+            print("Sleeping after success")
             sleep(5)  # 5 seconds
         except NoRecordsToProcessError:
+            print("Nothing to do: sleeping for an hour")
             sleep(60 * 60)  # sleep for an hour

@@ -98,3 +98,15 @@ class Database(object):
         cursor = self.connection.cursor()
         cursor.execute(update_query, call_id, alien_registration_id)
         self.connection.commit()
+
+    def update_azure_path(self, alien_registration_id, azure_path):
+        update_query = """
+        UPDATE {table}
+        SET 
+            Status = '{status}',
+            CallUploadUrl = ?
+        WHERE AlienRegistrationNumber = ?
+        """.format(table=db_tablename, status=Statuses.recording_ready)
+
+        cursor = self.connection.cursor()
+        cursor.execute(update_query, azure_path, alien_registration_id)
