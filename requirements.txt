@@ -1,3 +1,4 @@
 twilio==5.7.0
 pyodbc==4.0.3
 requests>=2.10.0
+azure==1.0.3

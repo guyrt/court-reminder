@@ -2,7 +2,7 @@
 Place a Twilio phone call and record the outcome.
 """
 
-from .secrets import *
+from call.secrets import *
 from twilio.rest import TwilioRestClient
 import time
 import requests
@@ -16,7 +16,6 @@ class TwilioCallWrapper(object):
         self.call_done_callback = call_done_callback
 
         self._client = TwilioRestClient(twilio_account_sid, twilio_auth_token)
-        # twilio hits this to get a record of what to do.
 
     def try_server(self):
         try:
@@ -63,4 +62,4 @@ class TwilioCallWrapper(object):
         recording_uri = recording.uri
 
         if self.call_done_callback:
-            self.call_done_callback(case_number, {'call_duration': call_duration, 'recording_uri': recording_uri})
+            self.call_done_callback(case_number, call_duration=call_duration, recording_uri=recording_uri)
