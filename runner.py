@@ -57,5 +57,5 @@ if __name__ == "__main__":
             print("Sleeping after success")
             sleep(5)  # 5 seconds
         except NoRecordsToProcessError:
-            print("Nothing to do: sleeping for an hour")
-            sleep(60 * 60)  # sleep for an hour
+            print("Nothing to do: sleeping for five minutes")
+            sleep(60 * 5)
