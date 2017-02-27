@@ -6,6 +6,7 @@ from storage.models import Database, NoRecordsToProcessError
 from storage.filestorage import BlobManager
 from call.place_call import TwilioCallWrapper
 from time import sleep
+from utils.exceptions import TemporaryChillError
 
 
 class CourtCallRunner(object):
@@ -59,3 +60,6 @@ if __name__ == "__main__":
         except NoRecordsToProcessError:
             print("Nothing to do: sleeping for five minutes")
             sleep(60 * 5)
+        except TemporaryChillError as e:
+            print("Temporary chill for {0} seconds".format(e.pause_time))
+            sleep(e.pause_time)

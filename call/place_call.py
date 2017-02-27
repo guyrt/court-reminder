@@ -7,6 +7,9 @@ from twilio.rest import TwilioRestClient
 import time
 import requests
 
+from utils.exceptions import TemporaryChillError
+
+
 class TwilioCallWrapper(object):
 
     callback_url = 'http://13.68.220.163/record.xml'
@@ -58,7 +61,10 @@ class TwilioCallWrapper(object):
         call_duration = call.duration
 
         # get a fresh call.
-        recording = call.recordings.list()[0]
+        recordings = call.recordings.list()
+        if not recordings:
+            raise TemporaryChillError(60 * 5)
+        recording = recordings[0]
         recording_uri = recording.uri
 
         if self.call_done_callback:
