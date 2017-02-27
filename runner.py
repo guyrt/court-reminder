@@ -8,6 +8,7 @@ from call.place_call import TwilioCallWrapper
 from time import sleep
 from raven import Client
 from storage.secrets import sentry_dsn
+from utils.exceptions import TemporaryChillError
 
 
 class CourtCallRunner(object):
@@ -61,9 +62,15 @@ if __name__ == "__main__":
         except NoRecordsToProcessError:
             print("Nothing to do: sleeping for five minutes")
             sleep(60 * 5)
+<<<<<<< HEAD
         except KeyboardInterrupt as e:
             print("Interrupted by user.")
         except Exception as e:
             print("Error!: {0}".format(e))
             client.captureException()
             sleep(60)
+=======
+        except TemporaryChillError as e:
+            print("Temporary chill for {0} seconds".format(e.pause_time))
+            sleep(e.pause_time)
+>>>>>>> d2b77a707761aafe3f6adbfa06bb86d177277e4e
