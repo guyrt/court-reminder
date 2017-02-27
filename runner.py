@@ -3,12 +3,12 @@ Main runner
 """
 
 from storage.models import Database, NoRecordsToProcessError
-from storage.filestorage import download_and_reupload
+from storage.filestorage import BlobManager
 from call.place_call import TwilioCallWrapper
 from time import sleep
 
 
-class CourtReminderRunner(object):
+class CourtCallRunner(object):
 
     def __init__(self):
         self._database = Database()
@@ -18,14 +18,14 @@ class CourtReminderRunner(object):
     def call(self):
         """
         Main call loop
+
+        At this stage, the recording has been uploaded.
+        next stages are to call speech to text api then
+        semantic extraction
         """
         next_ain = self._database.retrieve_next_record_for_call()
         print("Processing {0}".format(next_ain))
         self._caller.place_call(next_ain)
-
-        # at this stage, the recording has been uploaded.
-        # next stages are to call speech to text api then
-        # semantic extraction
 
     def _call_placed_callback(self, ain, call_id):
         """ Update database to say that a call was started and set call id """
@@ -40,7 +40,7 @@ class CourtReminderRunner(object):
         """
         print("Call duration was: {0}".format(call_duration))
         try:
-            azure_path = download_and_reupload(recording_uri)
+            azure_path = BlobManager().download_and_reupload(recording_uri)
             print("Azure path: ", azure_path)
             self._database.update_azure_path(ain, azure_path)
         except ValueError as e:
@@ -50,12 +50,12 @@ class CourtReminderRunner(object):
 if __name__ == "__main__":
     import time
 
-    runner = CourtReminderRunner()
+    runner = CourtCallRunner()
     while 1:
         try:
             runner.call()
             print("Sleeping after success")
             sleep(5)  # 5 seconds
         except NoRecordsToProcessError:
-            print("Nothing to do: sleeping for an hour")
-            sleep(60 * 60)  # sleep for an hour
+            print("Nothing to do: sleeping for five minutes")
+            sleep(60 * 5)

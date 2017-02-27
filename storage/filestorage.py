@@ -5,7 +5,7 @@ handle downloading and reuploading files to our own servers
 import requests
 import uuid 
 from utils.tempfilemanager import TmpFileCleanup
-from azure.storage.blob import BlobService
+from azure.storage.blob import BlockBlobService
 from storage.secrets import blob_key, blob_accountname, blob_container, local_tmp_dir
 
 class BlobManager(object):
@@ -42,3 +42,4 @@ class BlobManager(object):
         f = open(temp_file_name, "wb")
         x= blob_service.get_blob_to_file(container_name= blob_container, blob_name= azure_path, stream= f)
         f.close()
+
