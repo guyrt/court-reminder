@@ -18,7 +18,7 @@ class AzureTableDatabase(object):
         """
 
         calls = self.connection.query_entities(self.table_name, num_results=limit, select=select)
-        return [c.PartionKey for c in calls] 
+        return [c.PartitionKey for c in calls] 
 
     def retrieve_next_record_for_call(self):
         """
@@ -51,3 +51,12 @@ class AzureTableDatabase(object):
         record.Status = Statuses.calling
         record.CallTimestamp = datetime.now() 
         self.connection.update_entity(self.table_name, record)
+
+    def update_azure_path(self, alien_registration_id, azure_path):
+        record = self.connection.get_entity(self.table_name, alien_registration_id, alien_registration_id)
+        record.Status = Statuses.recording_ready
+        record.CallUploadUrl = azure_path 
+        self.connection.update_entity(self.table_name, record)
+
+    def get_ain(self, ain):
+        return self.connection.get_entity(self.table_name, ain, ain)
