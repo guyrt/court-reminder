@@ -6,11 +6,11 @@ import requests
 import uuid 
 from utils.tempfilemanager import TmpFileCleanup
 from azure.storage.blob import BlobService
-from secrets import blob_key, blob_accountname, blob_container, local_tmp_dir
+from storage.secrets import blob_key, blob_accountname, blob_container, local_tmp_dir
 
 class BlobManager(object):
 
-    def download_and_reupload(twilio_filename):
+    def download_and_reupload(self, twilio_filename):
         """ Download file from Twilio, upload to Azure, and return the Azure location and local file. """
         blob_service = BlobService(account_name=blob_accountname, account_key=blob_key)
         response = requests.get(twilio_filename)
@@ -36,7 +36,7 @@ class BlobManager(object):
             )
         return azure_path
 
-    def download_wave_from_blob_and_save_to_local_file(azure_path, temp_file_name):
+    def download_wave_from_blob_and_save_to_local_file(self, azure_path, temp_file_name):
         blob_service = BlobService(account_name=blob_accountname, account_key=blob_key)
         
         f = open(temp_file_name, "wb")

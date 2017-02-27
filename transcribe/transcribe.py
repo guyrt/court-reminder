@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import speech_recognition as sr
-from secrets import *
+from transcribe.secrets import *
 
 # obtain path to "english.wav" in the same folder as this script
 from os import path
-class BingTranscribe(object):
+class BingTranscriber(object):
 
     def __init__(self):
         self.bing_key = bing_speech_api_key
@@ -29,7 +29,3 @@ class BingTranscribe(object):
                 return self.transcribe_audio_object(audio)
         except sr.UnknownValueError as e:
             print("{0}".format(e))
-
-foo = BingTranscribe()
-result=foo.transcribe_audio_file_path((foo.audio_file))
-print(result)
