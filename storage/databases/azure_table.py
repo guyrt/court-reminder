@@ -25,7 +25,7 @@ class AzureTableDatabase(object):
         Retrieve a set of records that need a phone call
         """
 
-        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq 'new'")
+        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq {0}".format(Statuses.new))
 
         if len(records.items) == 0:
             raise NoRecordsToProcessError()
@@ -35,6 +35,25 @@ class AzureTableDatabase(object):
         self.connection.update_entity(self.table_name, record)
 
         return record.PartitionKey
+
+    def retrieve_next_record_for_transcribing(self):
+        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq {0}".format(Statuses.recording_ready))
+        if len(records.items) == 0:
+            raise NoRecordsToProcessError()
+        
+        record = records.item[0]
+        record.Status = Statuses.transcribing
+        self.connection.update_entity(self.table_name, record)
+
+        return record.CallUploadUrl, record.PartitionKey
+
+
+    def update_transcript(self, partition_key, transcript):
+        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
+        record.CallTranscript = transcript
+        record.Status = Statuses.transcribing_done
+        record.TranscribeTimestamp = datetime.now()
+        self.connection.update_entity(self.table_name, record)
 
     def upload_new_requests(self, request_ids):
         """
