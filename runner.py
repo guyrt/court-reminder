@@ -6,6 +6,8 @@ from storage.models import Database, NoRecordsToProcessError
 from storage.filestorage import BlobManager
 from call.place_call import TwilioCallWrapper
 from time import sleep
+from raven import Client
+from storage.secrets import sentry_dsn
 
 
 class CourtCallRunner(object):
@@ -48,9 +50,9 @@ class CourtCallRunner(object):
 
 
 if __name__ == "__main__":
-    import time
-
+    client = Client(sentry_dsn)
     runner = CourtCallRunner()
+
     while 1:
         try:
             runner.call()
@@ -59,3 +61,9 @@ if __name__ == "__main__":
         except NoRecordsToProcessError:
             print("Nothing to do: sleeping for five minutes")
             sleep(60 * 5)
+        except KeyboardInterrupt as e:
+            print("Interrupted by user.")
+        except Exception as e:
+            print("Error!: {0}".format(e))
+            client.captureException()
+            sleep(60)

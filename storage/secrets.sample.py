@@ -17,3 +17,6 @@ blob_accountmae = "court"
 blob_key = "mah_blob"
 blob_container = "somecontainer"
 local_tmp_dir = "/tmp"
+
+# sentry
+sentry_dsn = ''
