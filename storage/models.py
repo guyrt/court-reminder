@@ -13,4 +13,3 @@ class Statuses(object):
 
 
 from storage.databases.azure_table import AzureTableDatabase as Database
-

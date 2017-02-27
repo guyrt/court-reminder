@@ -3,7 +3,9 @@ Main runner
 """
 
 from storage.models import Database, NoRecordsToProcessError
+from storage.filestorage import download_and_reupload
 from call.place_call import TwilioCallWrapper
+from time import sleep
 
 
 class CourtReminderRunner(object):
@@ -30,13 +32,19 @@ class CourtReminderRunner(object):
         print("Call placed: {0} {1}".format(ain, call_id))
         self._database.update_call_id(ain, call_id)
 
-    def _call_done_callback(self, ain, recording_id):
+    def _call_done_callback(self, ain, call_duration, recording_uri):
         """
         Download the call and reupload to azure.
 
         Update database to say that a call was started and save the recording location.
         """
-        print("Time to download {0} for {1}".format(recording_id, ain))
+        print("Call duration was: {0}".format(call_duration))
+        try:
+            azure_path = download_and_reupload(recording_uri)
+            print("Azure path: ", azure_path)
+            self._database.update_azure_path(ain, azure_path)
+        except ValueError as e:
+            print("Error!: {0}".format(e))
 
 
 if __name__ == "__main__":
@@ -46,6 +54,8 @@ if __name__ == "__main__":
     while 1:
         try:
             runner.call()
+            print("Sleeping after success")
             sleep(5)  # 5 seconds
         except NoRecordsToProcessError:
+            print("Nothing to do: sleeping for an hour")
             sleep(60 * 60)  # sleep for an hour
