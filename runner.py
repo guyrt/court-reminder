@@ -3,7 +3,7 @@ Main runner
 """
 
 from storage.models import Database, NoRecordsToProcessError
-from storage.filestorage import download_and_reupload
+from storage.filestorage import BlobManager
 from call.place_call import TwilioCallWrapper
 from time import sleep
 
@@ -40,7 +40,7 @@ class CourtCallRunner(object):
         """
         print("Call duration was: {0}".format(call_duration))
         try:
-            azure_path = download_and_reupload(recording_uri)
+            azure_path = BlobManager().download_and_reupload(recording_uri)
             print("Azure path: ", azure_path)
             self._database.update_azure_path(ain, azure_path)
         except ValueError as e:
