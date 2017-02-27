@@ -8,7 +8,7 @@ from call.place_call import TwilioCallWrapper
 from time import sleep
 
 
-class CourtReminderRunner(object):
+class CourtCallRunner(object):
 
     def __init__(self):
         self._database = Database()
@@ -18,14 +18,14 @@ class CourtReminderRunner(object):
     def call(self):
         """
         Main call loop
+
+        At this stage, the recording has been uploaded.
+        next stages are to call speech to text api then
+        semantic extraction
         """
         next_ain = self._database.retrieve_next_record_for_call()
         print("Processing {0}".format(next_ain))
         self._caller.place_call(next_ain)
-
-        # at this stage, the recording has been uploaded.
-        # next stages are to call speech to text api then
-        # semantic extraction
 
     def _call_placed_callback(self, ain, call_id):
         """ Update database to say that a call was started and set call id """
@@ -50,7 +50,7 @@ class CourtReminderRunner(object):
 if __name__ == "__main__":
     import time
 
-    runner = CourtReminderRunner()
+    runner = CourtCallRunner()
     while 1:
         try:
             runner.call()

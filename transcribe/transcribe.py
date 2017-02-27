@@ -5,11 +5,12 @@ from secrets import *
 
 # obtain path to "english.wav" in the same folder as this script
 from os import path
+
 class BingTranscribe(object):
 
     def __init__(self):
         self.bing_key = bing_speech_api_key
-        self.language="en-US"
+        self.language = "en-US"
         self.audio_file = path.join(path.dirname(path.realpath(__file__)), sample_wav)
 
     def transcribe_audio_object(self, audio_object):    
@@ -63,5 +64,3 @@ print(result)
 #     return result + current    
 
 # print(text2int(result))
-
-# Microsoft Bing Voice Recognition thinks you said ford junk vernon miles at eight zero zero bella rosa street suite three zero zero san antonio texas seven eight two zero seven your next individual hearing date is april thirteen two thousand seventeen at one PM before it jumps vernon miles at eight zero zero delarossa street suite three zero zero san antonio texas seven eight two zero seven william next hearing date press one for case processing information

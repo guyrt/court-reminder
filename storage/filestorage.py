@@ -4,13 +4,13 @@ handle downloading and reuploading files to our own servers
 import os
 import requests
 import uuid
-from azure.storage.blob import BlobService
+from azure.storage.blob import BlockBlobService
 from storage.secrets import blob_key, blob_accountname, blob_container, local_tmp_dir
 
 
 def download_and_reupload(twilio_filename):
     """ Download file from Twilio, upload to Azure, and return the Azure location and local file. """
-    blob_service = BlobService(account_name=blob_accountname, account_key=blob_key)
+    blob_service = BlockBlobService(account_name=blob_accountname, account_key=blob_key)
     response = requests.get(twilio_filename)
     if response.status_code != 200:
         raise ValueError("Couldn't find Twilio file {0}".format(twilio_filename))
