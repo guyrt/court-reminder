@@ -3,4 +3,4 @@ Expose flask app in debug mode for dev purpose
 """
 
 from app import app
-app.run(port=8080, debug=True, processes=1)
+app.run(host='0.0.0.0', port=8080, debug=True, processes=1)

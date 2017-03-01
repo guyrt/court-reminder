@@ -5,11 +5,12 @@ from transcribe.secrets import *
 
 # obtain path to "english.wav" in the same folder as this script
 from os import path
+
 class BingTranscriber(object):
 
     def __init__(self):
         self.bing_key = bing_speech_api_key
-        self.language="en-US"
+        self.language = "en-US"
         self.audio_file = path.join(path.dirname(path.realpath(__file__)), sample_wav)
 
     def transcribe_audio_object(self, audio_object):    
