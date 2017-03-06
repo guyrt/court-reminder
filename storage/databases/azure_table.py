@@ -12,6 +12,13 @@ class AzureTableDatabase(object):
     def create_table(self):
         self.connection.create_table(self.table_name)
 
+    def raw_table(self, limit=100):
+        """
+        Retrieve a list of rows in the table
+        """
+        calls = self.connection.query_entities(self.table_name, num_results=limit)
+        return calls
+
     def list_calls(self, limit=100, select='PartitionKey'):
         """
         Retrieve a set of records that need a phone call
@@ -25,7 +32,7 @@ class AzureTableDatabase(object):
         Retrieve a set of records that need a phone call
         """
 
-        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq 'new'")
+        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.new))
 
         if len(records.items) == 0:
             raise NoRecordsToProcessError()
@@ -35,6 +42,33 @@ class AzureTableDatabase(object):
         self.connection.update_entity(self.table_name, record)
 
         return record.PartitionKey
+
+    def set_error(self, partition_key, step):
+        """ Reset a row from error state
+        """
+        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
+        record.Status = Statuses.error
+        record['LastErrorStep'] = step
+        self.connection.update_entity(self.table_name, record)
+
+    def retrieve_next_record_for_transcribing(self):
+        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.recording_ready))
+        if not records.items:
+            raise NoRecordsToProcessError()
+        
+        record = records.items[0]
+        record.Status = Statuses.transcribing
+        self.connection.update_entity(self.table_name, record)
+
+        return record.CallUploadUrl, record.PartitionKey
+
+
+    def update_transcript(self, partition_key, transcript):
+        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
+        record.CallTranscript = transcript
+        record.Status = Statuses.transcribing_done
+        record.TranscribeTimestamp = datetime.now()
+        self.connection.update_entity(self.table_name, record)
 
     def upload_new_requests(self, request_ids):
         """

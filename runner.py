@@ -28,7 +28,13 @@ class CourtCallRunner(object):
         """
         next_ain = self._database.retrieve_next_record_for_call()
         print("Processing {0}".format(next_ain))
-        self._caller.place_call(next_ain)
+        try:
+            self._caller.place_call(next_ain)
+        except:
+            # reset and throw
+            print("Rolling back {0}".format(next_ain))
+            self._database.error_calling(next_ain)
+            raise
 
     def _call_placed_callback(self, ain, call_id):
         """ Update database to say that a call was started and set call id """
@@ -68,7 +74,8 @@ if __name__ == "__main__":
             sleep(e.pause_time)
         except KeyboardInterrupt as e:
             print("Interrupted by user.")
-        except Exception as e:
-            print("Error!: {0}".format(e))
-            client.captureException()
-            sleep(60)
+            break
+        # except Exception as e:
+        #     print("Error!: {0}".format(e))
+        #     client.captureException()
+        #     sleep(60)
