@@ -3,8 +3,12 @@ Helping keep the Immigration Courts just
 
 
 # TODO
-Add a firewall for the database machine.
+Add a few actions:
 
+* Set state to error whenever error occurs.
+* Reset "calling" status to "new" to retry error calls. This isn't done automatically to avoid retrying the same call over and over.
+* Reset "transcribing" for errors.
 
 # Setup
-You'll need the MSSQL server drivers. I found them here: https://docs.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server
+
+
