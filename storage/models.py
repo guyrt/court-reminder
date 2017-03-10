@@ -12,6 +12,8 @@ class Statuses(object):
     recording_ready = "recording_ready"
     transcribing = "transcribing_recording"
     transcribing_done = "transcribing_completed"
+    extracting = "extracting_location_and_date"
+    extracting_done = "extracting_done"
     error = "error"
 
 from storage.databases.azure_table import AzureTableDatabase as Database
