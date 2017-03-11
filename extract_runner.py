@@ -4,7 +4,7 @@ from raven import Client
 from storage.secrets import sentry_dsn
 from storage.models import Database, NoRecordsToProcessError
 from utils.exceptions import TemporaryChillError
-from extract.extract_location_and_date import Extractor
+from extract.extract_info import Extractor
 
 
 class ExtractRunner(object):

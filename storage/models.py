@@ -12,7 +12,7 @@ class Statuses(object):
     recording_ready = "recording_ready"
     transcribing = "transcribing_recording"
     transcribing_done = "transcribing_completed"
-    extracting = "extracting_location_and_date"
+    extracting = "extracting_info"
     extracting_done = "extracting_done"
     error = "error"
 
