@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from azure.common import AzureConflictHttpError
-from azure.storage.table import TableService, Entity
+from azure.storage.table import TableService
 from storage.secrets import storage_account, table_connection_string, table_name
 from storage.models import Statuses, NoRecordsToProcessError
 
