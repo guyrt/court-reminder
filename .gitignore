@@ -95,3 +95,6 @@ ENV/
 .ropeproject
 .vscode/settings.json
 *.wav
+
+.idea
+
