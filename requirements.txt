@@ -6,3 +6,4 @@ azure-storage==0.34.0
 cryptography==1.7.2
 raven>=6.0.0
 SpeechRecognition>=3.6.0
+dateutil==2.6.0
