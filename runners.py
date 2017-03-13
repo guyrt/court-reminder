@@ -1,18 +1,25 @@
 import threading
 import uuid
+
+from datetime import datetime, timedelta
 from raven import Client
 from time import sleep
 
 from call.place_call import TwilioCallWrapper
 from storage.filestorage import BlobManager
-from storage.models import Database, NoRecordsToProcessError
+from storage.models import Database, NoRecordsToProcessError, Statuses
 from storage.secrets import local_tmp_dir, sentry_dsn
 from transcribe.transcribe import BingTranscriber
 from utils.exceptions import TemporaryChillError
 from utils.tempfilemanager import TmpFileCleanup
 
 
-class CourtCallRunner(object):
+class RunnerBase(object):
+
+    default_sleep_time = 5  # seconds
+
+
+class CourtCallRunner(RunnerBase):
 
     def __init__(self):
         self._database = Database()
@@ -37,7 +44,7 @@ class CourtCallRunner(object):
         except:
             # reset and throw
             print("Rolling back {0}".format(next_ain))
-            self._database.error_calling(next_ain)
+            self._database.set_error(next_ain, Statuses.new)
             raise
 
     def _call_placed_callback(self, ain, call_id):
@@ -60,7 +67,7 @@ class CourtCallRunner(object):
             print("Error!: {0}".format(e))
 
 
-class TranscribeRunner(object):
+class TranscribeRunner(RunnerBase):
 
     def __init__(self):
         self.blob_manager = BlobManager()
@@ -81,8 +88,31 @@ class TranscribeRunner(object):
             self.blob_manager.download_wav_from_blob_and_save_to_local_file(azure_blob, local_filename)
 
             transcript = self.bingTranscriber.transcribe_audio_file_path(local_filename)
-            print(transcript)
             self.azure_table.update_transcript(partition_key, transcript)
+
+
+class ErrorRecovery(RunnerBase):
+    """
+    Handles two kinds of errors:
+        - Stale progressions.
+        - Error states.
+    """
+
+    default_sleep_time = 60 * 10  # ten minutes
+
+    def __init__(self):
+        self.azure_table = Database()
+
+    def __str__(self):
+        return "ErrorRecovery"
+
+    def call(self):
+        cutoff_time = datetime.now() - timedelta(days=14)
+        try:
+            num_resets = self.azure_table.reset_stale_calls(cutoff_time)
+        except NoRecordsToProcessError:
+            num_resets = 0
+        print("Reset {0} records".format(num_resets))
 
 
 class RunnerThread(threading.Thread):
@@ -100,7 +130,7 @@ class RunnerThread(threading.Thread):
             try:
                 self.runner.call()
                 print("{0}: Sleeping after success".format(self.runner))
-                sleep(5)  # 5 seconds
+                sleep(self.runner.default_sleep_time)
             except NoRecordsToProcessError:
                 print("{0}: Nothing to do: sleeping for five minutes".format(self.runner))
                 sleep(60 * 5)
@@ -123,6 +153,7 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--call', help='Run caller', action='store_const', const="call")
     parser.add_argument('--transcribe', help='Run transcriber', action='store_const', const="transcribe")
     parser.add_argument('--parse', help='Run entity parser', action='store_const', const="parse")
+    parser.add_argument('--recover', help='Run error recovery function', action='store_const', const="recover")
 
     args = vars(parser.parse_args())
     runnables = [k for k, v in args.items() if v]
@@ -130,7 +161,7 @@ If you call with no arguments, all runners will start."""
         # if none passed, run them all.
         runnables = args.keys()
 
-    runnable_map = {'call': CourtCallRunner, 'transcribe': TranscribeRunner}
+    runnable_map = {'call': CourtCallRunner, 'transcribe': TranscribeRunner, 'recover': ErrorRecovery}
     for runnable in runnables:
         thread = RunnerThread(runnable_map.get(runnable))
         thread.start()
