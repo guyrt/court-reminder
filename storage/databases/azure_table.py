@@ -80,10 +80,10 @@ class AzureTableDatabase(object):
 
         return record.CallTranscript, record.PartitionKey
 
-    def update_location_date(self, partition_key, location, date):
+    def update_location_date(self, partition_key, location_dict, date_dict):
         record = self.connection.get_entity(self.table_name, partition_key, partition_key)
-        record.CourtHearingLocation = location
-        record.CourtHearingDate = date
+        record.update(**location_dict)
+        record.update(**date_dict)
         record.Status = Statuses.extracting_done
         self.connection.update_entity(self.table_name, record)
 

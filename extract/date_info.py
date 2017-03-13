@@ -115,8 +115,10 @@ def extract_date_time(s):
     homonyms.
     """
     return (extract_date_time_base(s) or
-            extract_date_time_base(utils.replace_homonyms(s)))
-
+            extract_date_time_base(utils.replace_homonyms(s)) or
+            {'year': None, 'month': None, 'day': None,
+             'hour': None, 'minute': None})
+    
 
 if __name__ == "__main__":
     ss = [

@@ -15,11 +15,9 @@ class ExtractRunner(object):
     def call(self):
         transcript, partition_key = self.azureTable.retrieve_next_record_for_extraction()
         extractor = Extractor(transcript)
-        location = extractor.get_location()
-        date = extractor.get_date()
-        print("Location: " + location)
-        print("Date: " + date)
-        self.azureTable.update_location_date(partition_key, location, date)
+        location_dict = extractor.get_location()
+        date_dict = extractor.get_date()
+        self.azureTable.update_location_date(partition_key, location_dict, date_dict)
 
 
 if __name__ == "__main__":
