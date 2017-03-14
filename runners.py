@@ -1,5 +1,7 @@
 import threading
 import uuid
+
+from datetime import datetime, timedelta
 from raven import Client
 from time import sleep
 
@@ -14,7 +16,12 @@ from extract.date_info import extract_date_time
 from extract.location_info import extract_location
 
 
-class CourtCallRunner(object):
+class RunnerBase(object):
+
+    default_sleep_time = 5  # seconds
+
+
+class CourtCallRunner(RunnerBase):
 
     def __init__(self):
         self._database = Database()
@@ -39,7 +46,7 @@ class CourtCallRunner(object):
         except:
             # reset and throw
             print("Rolling back {0}".format(next_ain))
-            self._database.error_calling(next_ain)
+            self._database.set_error(next_ain, Statuses.new)
             raise
 
     def _call_placed_callback(self, ain, call_id):
@@ -62,7 +69,7 @@ class CourtCallRunner(object):
             print("Error!: {0}".format(e))
 
 
-class TranscribeRunner(object):
+class TranscribeRunner(RunnerBase):
 
     def __init__(self):
         self.blob_manager = BlobManager()
@@ -83,16 +90,27 @@ class TranscribeRunner(object):
             self.blob_manager.download_wav_from_blob_and_save_to_local_file(azure_blob, local_filename)
 
             transcript = self.bingTranscriber.transcribe_audio_file_path(local_filename)
-            print(transcript)
             self.azure_table.update_transcript(partition_key, transcript)
 
 
+<<<<<<< HEAD
 class EntityRunner(object):
+=======
+class ErrorRecovery(RunnerBase):
+    """
+    Handles two kinds of errors:
+        - Stale progressions.
+        - Error states.
+    """
+
+    default_sleep_time = 60 * 10  # ten minutes
+>>>>>>> 3dc113602b54d8140f397db8d90c15f2953d908d
 
     def __init__(self):
         self.azure_table = Database()
 
     def __str__(self):
+<<<<<<< HEAD
         return "EntityRunner"
 
     def call(self):
@@ -102,6 +120,17 @@ class EntityRunner(object):
         date_dict = extract_date_time(transcript)
         print("Date, time: " + str(date_dict))
         self.azure_table.update_location_date(partition_key, location_dict, date_dict)
+=======
+        return "ErrorRecovery"
+
+    def call(self):
+        cutoff_time = datetime.now() - timedelta(days=14)
+        try:
+            num_resets = self.azure_table.reset_stale_calls(cutoff_time)
+        except NoRecordsToProcessError:
+            num_resets = 0
+        print("Reset {0} records".format(num_resets))
+>>>>>>> 3dc113602b54d8140f397db8d90c15f2953d908d
 
 
 class RunnerThread(threading.Thread):
@@ -119,7 +148,7 @@ class RunnerThread(threading.Thread):
             try:
                 self.runner.call()
                 print("{0}: Sleeping after success".format(self.runner))
-                sleep(5)  # 5 seconds
+                sleep(self.runner.default_sleep_time)
             except NoRecordsToProcessError:
                 print("{0}: Nothing to do: sleeping for five minutes".format(self.runner))
                 sleep(60 * 5)
@@ -142,9 +171,11 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--call', help='Run caller', action='store_const', const="call")
     parser.add_argument('--transcribe', help='Run transcriber', action='store_const', const="transcribe")
     parser.add_argument('--parse', help='Run entity parser', action='store_const', const="parse")
+    parser.add_argument('--recover', help='Run error recovery function', action='store_const', const="recover")
     parser.add_argument('--re_extract',
                         help='Include previously parsed records in entity parsing',
                         action='store_true')
+
 
     args = vars(parser.parse_args())
 
@@ -160,6 +191,7 @@ If you call with no arguments, all runners will start."""
 
     runnable_map = {'call': CourtCallRunner,
                     'transcribe': TranscribeRunner,
+                    'recover': ErrorRecovery,
                     'parse': EntityRunner}
 
     for runnable in runnables:

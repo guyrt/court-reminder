@@ -7,6 +7,9 @@ class NoRecordsToProcessError(Exception):
 
 
 class Statuses(object):
+    """
+    These are the status in order for a single run.
+    """
     new = "new"
     calling = "calling"
     recording_ready = "recording_ready"
@@ -15,5 +18,12 @@ class Statuses(object):
     extracting = "extracting_info"
     extracting_done = "extracting_done"
     error = "error"
+
+
+Statuses.reset_map = {
+    Statuses.calling: Statuses.new,
+    Statuses.transcribing: Statuses.recording_ready,
+    Statuses.extracting: Statuses.transcribing_done,
+}
 
 from storage.databases.azure_table import AzureTableDatabase as Database
