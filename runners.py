@@ -93,24 +93,12 @@ class TranscribeRunner(RunnerBase):
             self.azure_table.update_transcript(partition_key, transcript)
 
 
-<<<<<<< HEAD
-class EntityRunner(object):
-=======
-class ErrorRecovery(RunnerBase):
-    """
-    Handles two kinds of errors:
-        - Stale progressions.
-        - Error states.
-    """
-
-    default_sleep_time = 60 * 10  # ten minutes
->>>>>>> 3dc113602b54d8140f397db8d90c15f2953d908d
+class EntityRunner(RunnerBase):
 
     def __init__(self):
         self.azure_table = Database()
 
     def __str__(self):
-<<<<<<< HEAD
         return "EntityRunner"
 
     def call(self):
@@ -120,7 +108,21 @@ class ErrorRecovery(RunnerBase):
         date_dict = extract_date_time(transcript)
         print("Date, time: " + str(date_dict))
         self.azure_table.update_location_date(partition_key, location_dict, date_dict)
-=======
+
+
+class ErrorRecovery(RunnerBase):
+    """
+    Handles two kinds of errors:
+        - Stale progressions.
+        - Error states.
+    """
+
+    default_sleep_time = 60 * 10  # ten minutes
+
+    def __init__(self):
+        self.azure_table = Database()
+
+    def __str__(self):
         return "ErrorRecovery"
 
     def call(self):
@@ -130,7 +132,6 @@ class ErrorRecovery(RunnerBase):
         except NoRecordsToProcessError:
             num_resets = 0
         print("Reset {0} records".format(num_resets))
->>>>>>> 3dc113602b54d8140f397db8d90c15f2953d908d
 
 
 class RunnerThread(threading.Thread):
