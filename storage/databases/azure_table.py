@@ -69,6 +69,18 @@ class AzureTableDatabase(object):
         record.TranscribeTimestamp = datetime.now()
         self.connection.update_entity(self.table_name, record)
 
+    def change_status(self, original_status, new_status):
+        records = self.connection.query_entities(
+            self.table_name,
+            filter="Status eq '{0}'".format(original_status),
+        )
+        if not records.items:
+            return
+
+        for record in records.items:
+            record.Status = new_status
+            self.connection.update_entity(self.table_name, record)
+
     def retrieve_next_record_for_extraction(self):
         records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.transcribing_done))
         if not records.items:

@@ -5,11 +5,13 @@ from time import sleep
 
 from call.place_call import TwilioCallWrapper
 from storage.filestorage import BlobManager
-from storage.models import Database, NoRecordsToProcessError
+from storage.models import Database, NoRecordsToProcessError, Statuses
 from storage.secrets import local_tmp_dir, sentry_dsn
 from transcribe.transcribe import BingTranscriber
 from utils.exceptions import TemporaryChillError
 from utils.tempfilemanager import TmpFileCleanup
+from extract.date_info import extract_date_time
+from extract.location_info import extract_location
 
 
 class CourtCallRunner(object):
@@ -85,6 +87,23 @@ class TranscribeRunner(object):
             self.azure_table.update_transcript(partition_key, transcript)
 
 
+class EntityRunner(object):
+
+    def __init__(self):
+        self.azure_table = Database()
+
+    def __str__(self):
+        return "EntityRunner"
+
+    def call(self):
+        transcript, partition_key = self.azure_table.retrieve_next_record_for_extraction()
+        location_dict = extract_location(transcript)
+        print("Location: " + str(location_dict))
+        date_dict = extract_date_time(transcript)
+        print("Date, time: " + str(date_dict))
+        self.azure_table.update_location_date(partition_key, location_dict, date_dict)
+
+
 class RunnerThread(threading.Thread):
 
     def __init__(self, runnerClass):
@@ -123,14 +142,26 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--call', help='Run caller', action='store_const', const="call")
     parser.add_argument('--transcribe', help='Run transcriber', action='store_const', const="transcribe")
     parser.add_argument('--parse', help='Run entity parser', action='store_const', const="parse")
+    parser.add_argument('--re_extract',
+                        help='Include previously parsed records in entity parsing',
+                        action='store_true')
 
     args = vars(parser.parse_args())
+
+    if args.pop('re_extract'):
+        db = Database()
+        db.change_status(Statuses.extracting_done, Statuses.transcribing_done)
+        db.change_status(Statuses.extracting, Statuses.transcribing_done)
+    
     runnables = [k for k, v in args.items() if v]
     if not runnables:
         # if none passed, run them all.
         runnables = args.keys()
 
-    runnable_map = {'call': CourtCallRunner, 'transcribe': TranscribeRunner}
+    runnable_map = {'call': CourtCallRunner,
+                    'transcribe': TranscribeRunner,
+                    'parse': EntityRunner}
+
     for runnable in runnables:
         thread = RunnerThread(runnable_map.get(runnable))
         thread.start()
