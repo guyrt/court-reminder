@@ -22,13 +22,13 @@ def extract_location(s):
         zip_info = z_search.by_zipcode(zipcode)
         if states[state] == zip_info['State']:
             d = {key: zip_info[key] for key in keys}
-            d["Confidence"] = "high"
+            d["Confidence_location"] = "high"
             return d
     print(possible_locations)
     return {'State': possible_locations[0][0],
             'City': None,
             'Zipcode': possible_locations[0][1], 
-            'Confidence': "low"}
+            'Confidence_location': "low"}
     
  
 
