@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import speech_recognition as sr
-from transcribe.secrets import *
+from secrets import *
 from storage.secrets import local_tmp_dir
 
 # obtain path to "english.wav" in the same folder as this script
