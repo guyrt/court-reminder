@@ -12,8 +12,8 @@ from storage.secrets import local_tmp_dir, sentry_dsn
 from transcribe.transcribe import BingTranscriber, GoogleTranscriber
 from utils.exceptions import TemporaryChillError
 from utils.tempfilemanager import TmpFileCleanup
-from extract.date_info import extract_date_time
-from extract.location_info import extract_location
+from extract.date_info_Google import extract_date_time
+from extract.location_info_Google import extract_location
 
 
 class RunnerBase(object):
