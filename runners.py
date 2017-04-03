@@ -180,7 +180,10 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--parse', help='Run entity parser', action='store_const', const="parse")
     parser.add_argument('--recover', help='Run error recovery function', action='store_const', const="recover")
     parser.add_argument('--re_extract',
-                        help='Include previously parsed records in entity parsing',
+                        help='Include previously parsed records in entity parsing, used for testing',
+                        action='store_true')
+    parser.add_argument('--re_transcribe', 
+                        help='Include previously transcribed records in entity transcription, used for testing', 
                         action='store_true')
 
 
@@ -190,6 +193,14 @@ If you call with no arguments, all runners will start."""
         db = Database()
         db.change_status(Statuses.extracting_done, Statuses.transcribing_done)
         db.change_status(Statuses.extracting, Statuses.transcribing_done)
+
+    if args.pop('re_transcribe'):
+        db = Database()
+        db.change_status(Statuses.transcribing_done, Statuses.recording_ready)
+        db.change_status(Statuses.transcribing, Statuses.recording_ready)
+        db.change_status(Statuses.extracting, Statuses.recording_ready)
+        db.change_status(Statuses.extracting_done, Statuses.recording_ready)
+
     
     runnables = [k for k, v in args.items() if v]
     if not runnables:
