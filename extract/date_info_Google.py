@@ -5,7 +5,9 @@ import dateutil.parser as dparser
 from datetime import datetime
 import re
 
-import utils
+from extract.utils import years_to_digits, ordinals_to_ordinals, 
+                          hour_with_min_to_time, wordnums_to_nums, 
+                          replace_homonyms
 
 
 #not used by Google
@@ -27,10 +29,10 @@ def create_digits_for_date_parsing(s):
     -> 'april, 2016 at 2:30 PM'
     """
     # order important
-    s = utils.years_to_digits(s)
-    s = utils.ordinals_to_ordinals(s)
-    s = utils.hour_with_min_to_time(s)
-    s = utils.wordnums_to_nums(s)
+    s = years_to_digits(s)
+    s = ordinals_to_ordinals(s)
+    s = hour_with_min_to_time(s)
+    s = wordnums_to_nums(s)
     return s
 
 
@@ -117,7 +119,7 @@ def extract_date_time(s):
     homonyms.
     """
     return (extract_date_time_base(s) or
-            extract_date_time_base(utils.replace_homonyms(s), words_to_nums=True) or
+            extract_date_time_base(replace_homonyms(s), words_to_nums=True) or
             {'year': None, 'month': None, 'day': None,
              'hour': None, 'minute': None})
     
