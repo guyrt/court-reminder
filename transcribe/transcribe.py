@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 
 import speech_recognition as sr
-from secrets import *
-from storage.secrets import local_tmp_dir
+from transcribe.secrets import (
+    bing_speech_api_key,
+    google_credentials_json,
+    google_preferred_phrases,
+)
 
-# obtain path to "english.wav" in the same folder as this script
-from os import path
+class TranscriptionStatus(object):
+    success = "success"
+    request_error = "request error"
+    translation_error = "unintelligible audio"
+    unknown_error = "unknown error"
+
 
 class BingTranscriber(object):
 
@@ -27,6 +34,39 @@ class BingTranscriber(object):
         try:
             with sr.AudioFile(audio_file_path) as source:
                 audio = r.record(source)       
-                return self.transcribe_audio_object(audio)
+                return self.transcribe_audio_object(audio), TranscriptionStatus.success
         except sr.UnknownValueError as e:
             print("{0}".format(e))
+
+
+class GoogleTranscriber(object):
+
+    def __init__(self):
+        self.google_creds = google_credentials_json
+        self.language = "en-US"
+        self.preferred_phrases = google_preferred_phrases
+
+    def transcribe_audio_file_path(self, audio_file_path):
+        r = sr.Recognizer()
+        transcript = ""
+        error = TranscriptionStatus.success
+        with sr.AudioFile(audio_file_path) as source:
+            audio_object = r.record(source)
+            try:
+                transcript = r.recognize_google_cloud(
+                    audio_data=audio_object,
+                    credentials_json=self.google_creds,
+                    language=self.language,
+                    preferred_phrases=self.preferred_phrases,
+                    show_all=False,
+                )
+            except sr.UnknownValueError:
+                error = TranscriptionStatus.translation_error
+                print("Google Cloud Speech could not understand audio")
+            except sr.RequestError:
+                error = TranscriptionStatus.request_error
+                print("Could not request results from Google Cloud Speech "
+                      "service; {0}".format(e))
+            except:
+                error = TranscriptionStatus.unknown_error
+        return transcript, error

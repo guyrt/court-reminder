@@ -9,7 +9,7 @@ from call.place_call import TwilioCallWrapper
 from storage.filestorage import BlobManager
 from storage.models import Database, NoRecordsToProcessError, Statuses
 from storage.secrets import local_tmp_dir, sentry_dsn
-from transcribe.transcribe import BingTranscriber
+from transcribe.transcribe import BingTranscriber, GoogleTranscriber
 from utils.exceptions import TemporaryChillError
 from utils.tempfilemanager import TmpFileCleanup
 from extract.date_info import extract_date_time
@@ -73,24 +73,30 @@ class TranscribeRunner(RunnerBase):
 
     def __init__(self):
         self.blob_manager = BlobManager()
-        self.bingTranscriber = BingTranscriber()
+        # self.bingTranscriber = BingTranscriber()
+        self.googleTranscriber = GoogleTranscriber()
         self.azure_table = Database()
 
     def __str__(self):
         return "TranscribeRunner"
 
     def call(self):
-        azure_blob, partition_key = self.azure_table.retrieve_next_record_for_transcribing()
+        azure_blob, partition_key = \
+            self.azure_table.retrieve_next_record_for_transcribing()
 
         with TmpFileCleanup() as tmp_file_store:
             filename = "{0}.{1}".format(uuid.uuid4(), "wav")
             local_filename = local_tmp_dir + "/" + filename
             tmp_file_store.tmp_files.append(local_filename)
-
-            self.blob_manager.download_wav_from_blob_and_save_to_local_file(azure_blob, local_filename)
-
-            transcript = self.bingTranscriber.transcribe_audio_file_path(local_filename)
-            self.azure_table.update_transcript(partition_key, transcript)
+            self.blob_manager.download_wav_from_blob_and_save_to_local_file(
+                azure_blob,
+                local_filename,
+            )
+            transcript, status = \
+                self.googleTranscriber.transcribe_audio_file_path(
+                    local_filename,
+            )
+            self.azure_table.update_transcript(partition_key, transcript, status)
 
 
 class EntityRunner(RunnerBase):
