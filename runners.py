@@ -9,7 +9,7 @@ from call.place_call import TwilioCallWrapper
 from storage.filestorage import BlobManager
 from storage.models import Database, NoRecordsToProcessError, Statuses
 from storage.secrets import local_tmp_dir, sentry_dsn
-from transcribe.transcribe import BingTranscriber
+from transcribe.transcribe import BingTranscriber, GoogleTranscriber
 from utils.exceptions import TemporaryChillError
 from utils.tempfilemanager import TmpFileCleanup
 from extract.date_info import extract_date_time
@@ -73,24 +73,30 @@ class TranscribeRunner(RunnerBase):
 
     def __init__(self):
         self.blob_manager = BlobManager()
-        self.bingTranscriber = BingTranscriber()
+        # self.bingTranscriber = BingTranscriber()
+        self.googleTranscriber = GoogleTranscriber()
         self.azure_table = Database()
 
     def __str__(self):
         return "TranscribeRunner"
 
     def call(self):
-        azure_blob, partition_key = self.azure_table.retrieve_next_record_for_transcribing()
+        azure_blob, partition_key = \
+            self.azure_table.retrieve_next_record_for_transcribing()
 
         with TmpFileCleanup() as tmp_file_store:
             filename = "{0}.{1}".format(uuid.uuid4(), "wav")
             local_filename = local_tmp_dir + "/" + filename
             tmp_file_store.tmp_files.append(local_filename)
-
-            self.blob_manager.download_wav_from_blob_and_save_to_local_file(azure_blob, local_filename)
-
-            transcript = self.bingTranscriber.transcribe_audio_file_path(local_filename)
-            self.azure_table.update_transcript(partition_key, transcript)
+            self.blob_manager.download_wav_from_blob_and_save_to_local_file(
+                azure_blob,
+                local_filename,
+            )
+            transcript, status = \
+                self.googleTranscriber.transcribe_audio_file_path(
+                    local_filename,
+            )
+            self.azure_table.update_transcript(partition_key, transcript, status)
 
 
 class EntityRunner(RunnerBase):
@@ -174,7 +180,10 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--parse', help='Run entity parser', action='store_const', const="parse")
     parser.add_argument('--recover', help='Run error recovery function', action='store_const', const="recover")
     parser.add_argument('--re_extract',
-                        help='Include previously parsed records in entity parsing',
+                        help='Include previously parsed records in entity parsing, used for testing',
+                        action='store_true')
+    parser.add_argument('--re_transcribe', 
+                        help='Include previously transcribed records in entity transcription, used for testing', 
                         action='store_true')
 
 
@@ -184,6 +193,14 @@ If you call with no arguments, all runners will start."""
         db = Database()
         db.change_status(Statuses.extracting_done, Statuses.transcribing_done)
         db.change_status(Statuses.extracting, Statuses.transcribing_done)
+
+    if args.pop('re_transcribe'):
+        db = Database()
+        db.change_status(Statuses.transcribing_done, Statuses.recording_ready)
+        db.change_status(Statuses.transcribing, Statuses.recording_ready)
+        db.change_status(Statuses.extracting, Statuses.recording_ready)
+        db.change_status(Statuses.extracting_done, Statuses.recording_ready)
+
     
     runnables = [k for k, v in args.items() if v]
     if not runnables:

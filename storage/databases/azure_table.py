@@ -86,7 +86,8 @@ class AzureTableDatabase(object):
 
         return record.CallUploadUrl, record.PartitionKey
 
-    def update_transcript(self, partition_key, transcript):
+    def update_transcript(self, partition_key, transcript, transcription_status):
+        # TODO: use transcription_status to update record.Status once we've decided on state diagram
         record = self.connection.get_entity(self.table_name, partition_key, partition_key)
         record.CallTranscript = transcript
         record.Status = Statuses.transcribing_done
