@@ -5,9 +5,7 @@ import dateutil.parser as dparser
 from datetime import datetime
 import re
 
-from extract.utils import years_to_digits, ordinals_to_ordinals, 
-                          hour_with_min_to_time, wordnums_to_nums, 
-                          replace_homonyms
+from extract.utils import years_to_digits, ordinals_to_ordinals, hour_with_min_to_time, wordnums_to_nums, replace_homonyms
 
 
 #not used by Google
