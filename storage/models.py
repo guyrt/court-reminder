@@ -18,7 +18,7 @@ class Statuses(object):
     extracting = "extracting_info"
     extracting_done = "extracting_done"
     error = "error"
-
+    failed_to_return_info = "failed_to_return_info"
 
 Statuses.reset_map = {
     Statuses.calling: Statuses.new,
