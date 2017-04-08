@@ -29,11 +29,11 @@ def extract_location(s):
                 'Zipcode': possible_locations[0][1], 
                 'Confidence_location': "low"}
     else:
-        return {'State': None,
-                'City': None,
-                'Zipcode': None, 
-                'Confidence_location': None}    
- 
+#        return {'State': None,
+#                'City': None,
+#                'Zipcode': None, 
+#                'Confidence_location': None}    
+        return None
 
 if __name__ == "__main__":
     ss = [
