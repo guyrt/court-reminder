@@ -2,6 +2,7 @@
 handle downloading and reuploading files to our own servers
 """
 
+import os
 import requests
 import uuid 
 from utils.tempfilemanager import TmpFileCleanup
@@ -22,7 +23,8 @@ class BlobManager(object):
         azure_path = "/recordings/" + short_file_name
 
         with TmpFileCleanup() as tmp_file_store:
-            local_filename = local_tmp_dir + "/" + short_file_name
+#            local_filename = local_tmp_dir + "/" + short_file_name
+            local_filename = os.path.join(local_tmp_dir, short_file_name)
             tmp_file_store.tmp_files.append(local_filename)
             f = open(local_filename, "wb")
             f.write(response.content)

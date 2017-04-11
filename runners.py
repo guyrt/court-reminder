@@ -185,9 +185,24 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--re_transcribe', 
                         help='Include previously transcribed records in entity transcription, used for testing', 
                         action='store_true')
+    parser.add_argument('--tryAgain', 
+                        help='Try calling again numbers for which we failed to get location date info', 
+                        action='store_true')
+    parser.add_argument('--setCallingToNew', 
+                        help='Resets statuses stuck on calling to new', 
+                        action='store_true')
 
 
     args = vars(parser.parse_args())
+
+    if args.pop('tryAgain'):
+        db = Database()
+        db.change_status(Statuses.failed_to_return_info, Statuses.new)
+
+    if args.pop('setCallingToNew'):
+        db = Database()
+        db.change_status(Statuses.calling, Statuses.new)
+
 
     if args.pop('re_extract'):
         db = Database()

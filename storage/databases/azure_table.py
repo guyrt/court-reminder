@@ -119,9 +119,12 @@ class AzureTableDatabase(object):
 
     def update_location_date(self, partition_key, location_dict, date_dict):
         record = self.connection.get_entity(self.table_name, partition_key, partition_key)
-        record.update(**location_dict)
-        record.update(**date_dict)
-        record.Status = Statuses.extracting_done
+        if location_dict and date_dict:
+            record.update(**location_dict)
+            record.update(**date_dict)
+            record.Status = Statuses.extracting_done
+        else:
+            record.Status = Statuses.failed_to_return_info
         self._update_entity(record)
 
     def upload_new_requests(self, request_ids):

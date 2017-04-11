@@ -116,10 +116,13 @@ def extract_date_time(s):
     """ If extract_date_time_base doesn't succeed, try again having replaced
     homonyms.
     """
+#    return (extract_date_time_base(s) or
+#            extract_date_time_base(replace_homonyms(s), words_to_nums=True) or
+#            {'year': None, 'month': None, 'day': None,
+#             'hour': None, 'minute': None})
     return (extract_date_time_base(s) or
             extract_date_time_base(replace_homonyms(s), words_to_nums=True) or
-            {'year': None, 'month': None, 'day': None,
-             'hour': None, 'minute': None})
+            None)
     
 
 if __name__ == "__main__":
