@@ -43,7 +43,9 @@ class TwilioCallWrapper(object):
         Wait for 10 seconds
         Send 1  [trick into a repeat so we catch the full message.]
         """
-        return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1"
+        return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1" 
+        #return "1w1ww{case_number}ww1w1w1".format(case_number=case_number) + ("w" * 5 * 2) + "1" #If warning of maintenance
+
 
     def place_call(self, case_number):
         send_digits = self.build_dtmf_sequence(case_number)

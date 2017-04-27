@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import sys
 import speech_recognition as sr
 from transcribe.secrets import (
     bing_speech_api_key,
@@ -68,5 +68,6 @@ class GoogleTranscriber(object):
                 print("Could not request results from Google Cloud Speech "
                       "service; {0}".format(e))
             except:
+                print("Unknown transcription error:", sys.exc_info())
                 error = TranscriptionStatus.unknown_error
         return transcript, error
