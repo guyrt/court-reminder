@@ -4,6 +4,7 @@ from azure.common import AzureConflictHttpError
 from azure.storage.table import TableService
 from storage.secrets import storage_account, table_connection_string, table_name
 from storage.models import Statuses, NoRecordsToProcessError
+from transcribe.transcribe import TranscriptionStatus
 
 
 class AzureTableDatabase(object):
@@ -31,7 +32,7 @@ class AzureTableDatabase(object):
         """
 
         calls = self.connection.query_entities(self.table_name, num_results=limit, select=select)
-        return [c.PartitionKey for c in calls] 
+        return [c.PartitionKey for c in calls]
 
     def reset_stale_calls(self, time_limit):
         """
@@ -76,23 +77,36 @@ class AzureTableDatabase(object):
         self._update_entity(record)
 
     def retrieve_next_record_for_transcribing(self):
-        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.recording_ready))
+        records = self.connection.query_entities(
+            self.table_name,
+            num_results=1,
+            filter="Status eq '{0}'".format(Statuses.recording_ready),
+        )
         if not records.items:
             raise NoRecordsToProcessError()
-        
+
         record = records.items[0]
         record.Status = Statuses.transcribing
         self._update_entity(record)
 
         return record.CallUploadUrl, record.PartitionKey
 
-    def update_transcript(self, partition_key, transcript, transcription_status):
-        # TODO: use transcription_status to update record.Status once we've decided on state diagram
-        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
-        record.CallTranscript = transcript
-        record.Status = Statuses.transcribing_done
-        record.TranscribeTimestamp = datetime.now()
-        self._update_entity(record)
+    def update_transcript(self, partition_key, transcript, status):
+        record = self.connection.get_entity(
+            self.table_name,
+            partition_key,
+            partition_key,
+        )
+        if status == TranscriptionStatus.success:
+            record.CallTranscript = transcript
+            record.Status = Statuses.transcribing_done
+            record.TranscribeTimestamp = datetime.now()
+            self._update_entity(record)
+        elif status == TranscriptionStatus.request_error:
+            self.set_error(partition_key, Statuses.transcribing)
+        else:
+            record.Status = Statuses.transcribing_failed
+            self._update_entity(record)
 
     def change_status(self, original_status, new_status):
         records = self.connection.query_entities(

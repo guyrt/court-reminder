@@ -10,7 +10,7 @@ from transcribe.secrets import (
 class TranscriptionStatus(object):
     success = "success"
     request_error = "request error"
-    translation_error = "unintelligible audio"
+    transcription_error = "unintelligible audio"
     unknown_error = "unknown error"
 
 
@@ -33,7 +33,7 @@ class BingTranscriber(object):
         r = sr.Recognizer()
         try:
             with sr.AudioFile(audio_file_path) as source:
-                audio = r.record(source)       
+                audio = r.record(source)
                 return self.transcribe_audio_object(audio), TranscriptionStatus.success
         except sr.UnknownValueError as e:
             print("{0}".format(e))
@@ -49,7 +49,7 @@ class GoogleTranscriber(object):
     def transcribe_audio_file_path(self, audio_file_path):
         r = sr.Recognizer()
         transcript = ""
-        error = TranscriptionStatus.success
+        transcription_status = TranscriptionStatus.success
         with sr.AudioFile(audio_file_path) as source:
             audio_object = r.record(source)
             try:
@@ -61,12 +61,12 @@ class GoogleTranscriber(object):
                     show_all=False,
                 )
             except sr.UnknownValueError:
-                error = TranscriptionStatus.translation_error
+                transcription_status = TranscriptionStatus.transcription_error
                 print("Google Cloud Speech could not understand audio")
             except sr.RequestError:
-                error = TranscriptionStatus.request_error
+                transcription_status = TranscriptionStatus.request_error
                 print("Could not request results from Google Cloud Speech "
                       "service; {0}".format(e))
             except:
-                error = TranscriptionStatus.unknown_error
-        return transcript, error
+                transcription_status = TranscriptionStatus.unknown_error
+        return transcript, transcription_status
