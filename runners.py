@@ -106,17 +106,23 @@ class TranscribeRunner(RunnerBase):
                 azure_blob,
                 local_filename,
             )
-            transcript, status = \
+            transcript, transcription_status = \
                 self.googleTranscriber.transcribe_audio_file_path(
                     local_filename,
             )
-            self.azure_table.update_transcript(partition_key,
-                transcript, status)
         if status != TranscriptionStatus.success:
             self.consec_error_count += 1
             raise TranscriptionError("Transcription failed, status: " + status)
         else:
             self.consec_error_count = 0
+            print("Transcript for {partition_key}: {transcript}"
+                .format(**locals()))
+            self.azure_table.update_transcript(
+                partition_key,
+                transcript,
+                transcription_status,
+            )
+
 
 class EntityRunner(RunnerBase):
 
@@ -274,8 +280,6 @@ If you call with no arguments, all runners will start."""
         db.change_status(Statuses.calling, Statuses.new)
         db.change_status(Statuses.failed_to_return_info, Statuses.new)
         db.change_status(Statuses.error, Statuses.new)
-
-
 
     runnables = [k for k, v in args.items() if v]
     if not runnables:
