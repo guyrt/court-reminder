@@ -11,8 +11,13 @@ from storage.filestorage import BlobManager
 from storage.models import Database, NoRecordsToProcessError, Statuses
 from storage.secrets import local_tmp_dir, sentry_dsn
 from transcribe.transcribe import GoogleTranscriber, TranscriptionStatus
-from utils.exceptions import (TemporaryChillError,
-    TooManyErrorsException, TranscriptionError, TwilioResponseError)
+from utils.exceptions import (
+    TemporaryChillError,
+    TooManyErrorsException,
+    TranscriptionError,
+    TwilioResponseError,
+    EntityExtractionError,
+)
 from utils.tempfilemanager import TmpFileCleanup
 from extract.date_info_Google import extract_date_time
 from extract.location_info_Google import extract_location
@@ -23,11 +28,11 @@ class RunnerBase(object):
 
     # Max number of consecutive errors allowed in a runner before shutting down
     # program
-    MAX_ALLOWABLE_ERRORS = 2 # remove 30
+    MAX_ALLOWABLE_ERRORS = 30
     default_sleep_time = 5  # seconds
 
 class CourtCallRunner(RunnerBase):
-    def __init__(self, stop_event):
+    def __init__(self):
         self._database = Database()
         self._caller = TwilioCallWrapper(self._call_placed_callback,
             self._call_done_callback)
@@ -82,7 +87,7 @@ class CourtCallRunner(RunnerBase):
 
 class TranscribeRunner(RunnerBase):
 
-    def __init__(self, stop_event):
+    def __init__(self):
         self.blob_manager = BlobManager()
         self.googleTranscriber = GoogleTranscriber()
         self.azure_table = Database()
@@ -110,23 +115,24 @@ class TranscribeRunner(RunnerBase):
                 self.googleTranscriber.transcribe_audio_file_path(
                     local_filename,
             )
-        if status != TranscriptionStatus.success:
+        self.azure_table.update_transcript(
+            partition_key,
+            transcript,
+            transcription_status,
+        )
+        if transcription_status != TranscriptionStatus.success:
             self.consec_error_count += 1
-            raise TranscriptionError("Transcription failed, status: " + status)
+            raise TranscriptionError("Transcription failed, status: " +
+                transcription_status)
         else:
             self.consec_error_count = 0
             print("Transcript for {partition_key}: {transcript}"
                 .format(**locals()))
-            self.azure_table.update_transcript(
-                partition_key,
-                transcript,
-                transcription_status,
-            )
 
 
 class EntityRunner(RunnerBase):
 
-    def __init__(self, stop_event):
+    def __init__(self):
         self.azure_table = Database()
         self.consec_error_count = 0
 
@@ -139,15 +145,19 @@ class EntityRunner(RunnerBase):
 
         transcript, partition_key = self.azure_table.retrieve_next_record_for_extraction()
         location_dict = extract_location(transcript)
-        print("Location: " + str(location_dict))
+        print("Location for {0}: {1}".format(partition_key, str(location_dict)))
         date_dict = extract_date_time(transcript)
-        print("Date, time: " + str(date_dict))
+        print("Date, time for {0}: {1}".format(partition_key, str(date_dict)))
         self.azure_table.update_location_date(partition_key,
             location_dict, date_dict)
         if location_dict == None or date_dict == None:
             self.consec_error_count += 1
+            raise EntityExtractionError(
+                "failed to extract location or date for {0}"
+                .format(partition_key))
         else:
             self.consec_error_count = 0
+
 
 class ErrorRecovery(RunnerBase):
     """
@@ -156,9 +166,9 @@ class ErrorRecovery(RunnerBase):
         - Error states.
     """
 
-    # remove default_sleep_time = 60 * 10
+    default_sleep_time = 60 * 10
 
-    def __init__(self, stop_event):
+    def __init__(self):
         self.azure_table = Database()
 
     def __str__(self):
@@ -177,7 +187,7 @@ class RunnerThread(threading.Thread):
 
     def __init__(self, runnerClass, stop_event):
         threading.Thread.__init__(self)
-        self.runner = runnerClass(stop_event)
+        self.runner = runnerClass()
         self.client = Client(sentry_dsn)
         self.stop_event = stop_event
 
@@ -191,7 +201,7 @@ class RunnerThread(threading.Thread):
                 print("{0}: Sleeping after success".format(self.runner))
                 sleep(self.runner.default_sleep_time)
             except NoRecordsToProcessError:
-                mins = 0.1 # remove 5
+                mins = 5
                 print("{0}: Nothing to do: sleeping for {1} minutes".format(self.runner, mins))
                 sleep(60 * mins)
             except TemporaryChillError as e:
@@ -206,11 +216,12 @@ class RunnerThread(threading.Thread):
                       str(self.runner) + " thread; Setting stop event \n")
                 self.stop_event.set()
                 return
-            except TranscriptionError as e:
-                print("{0}: {1}".format(self.runner,e))
-            except TwilioResponseError as e:
-                print("{0}: {1}".format(self.runner,e))
-
+            except (
+                TranscriptionError,
+                TwilioResponseError,
+                EntityExtractionError,
+                ) as e:
+                print("{0}: {1}".format(self.runner, e))
 
         print("The " + str(self.runner) + " thread has received a stop event")
 
@@ -266,10 +277,6 @@ If you call with no arguments, all runners will start."""
         db.change_status(Statuses.transcribing, Statuses.recording_ready)
         db.change_status(Statuses.extracting, Statuses.recording_ready)
         db.change_status(Statuses.extracting_done, Statuses.recording_ready)
-        # remove
-        # db.change_status(Statuses.error, Statuses.recording_ready)
-        db.change_status(Statuses.new, Statuses.recording_ready)
-        db.change_status(Statuses.failed_to_return_info, Statuses.recording_ready)
 
     if args.pop('set_to_new'):
         db = Database()
@@ -303,7 +310,7 @@ If you call with no arguments, all runners will start."""
     signal.signal(signal.SIGINT, interrupt)
 
     while not stop_event.isSet():
-        sleep(10) # remove sleep(60)
+        sleep(60)
         print("There are {0} threads active:".format(threading.active_count()))
 
         for thread in threading.enumerate():

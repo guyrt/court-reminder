@@ -11,3 +11,6 @@ class TranscriptionError(Exception):
 
 class TwilioResponseError(Exception):
 	pass
+
+class EntityExtractionError(Exception):
+    pass

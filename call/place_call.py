@@ -65,7 +65,7 @@ class TwilioCallWrapper(object):
         # get a fresh call.
         recordings = call.recordings.list()
         if not recordings:
-            raise TemporaryChillError(10) # remove (60 * 5)
+            raise TemporaryChillError(60 * 5)
         recording = recordings[0]
         recording_uri = recording.uri
 

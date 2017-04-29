@@ -26,13 +26,13 @@ def extract_location(s):
     if possible_locations != []:
         return {'State': possible_locations[0][0],
                 'City': None,
-                'Zipcode': possible_locations[0][1], 
+                'Zipcode': possible_locations[0][1],
                 'Confidence_location': "low"}
     else:
 #        return {'State': None,
 #                'City': None,
-#                'Zipcode': None, 
-#                'Confidence_location': None}    
+#                'Zipcode': None,
+#                'Confidence_location': None}
         return None
 
 if __name__ == "__main__":
@@ -44,4 +44,3 @@ if __name__ == "__main__":
     for s in ss:
         print('\n' + s)
         print(extract_location(s))
-    
