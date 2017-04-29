@@ -43,7 +43,7 @@ class TwilioCallWrapper(object):
         Wait for 10 seconds
         Send 1  [trick into a repeat so we catch the full message.]
         """
-        return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1" 
+        return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1"
         #return "1w1ww{case_number}ww1w1w1".format(case_number=case_number) + ("w" * 5 * 2) + "1" #If warning of maintenance
 
 
@@ -65,7 +65,7 @@ class TwilioCallWrapper(object):
         # get a fresh call.
         recordings = call.recordings.list()
         if not recordings:
-            raise TemporaryChillError(60 * 5)
+            raise TemporaryChillError(10) # remove (60 * 5)
         recording = recordings[0]
         recording_uri = recording.uri
 
