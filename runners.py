@@ -73,7 +73,6 @@ class TranscribeRunner(RunnerBase):
 
     def __init__(self):
         self.blob_manager = BlobManager()
-        # self.bingTranscriber = BingTranscriber()
         self.googleTranscriber = GoogleTranscriber()
         self.azure_table = Database()
 
@@ -92,11 +91,18 @@ class TranscribeRunner(RunnerBase):
                 azure_blob,
                 local_filename,
             )
-            transcript, status = \
+            transcript, transcription_status = \
                 self.googleTranscriber.transcribe_audio_file_path(
                     local_filename,
             )
-            self.azure_table.update_transcript(partition_key, transcript, status)
+            if transcript:
+                print("Transcript for {partition_key}: {transcript}"
+                      .format(**locals()))
+            self.azure_table.update_transcript(
+                partition_key,
+                transcript,
+                transcription_status,
+            )
 
 
 class EntityRunner(RunnerBase):
@@ -182,14 +188,14 @@ If you call with no arguments, all runners will start."""
     parser.add_argument('--re_extract',
                         help='Include previously parsed records in entity parsing, used for testing',
                         action='store_true')
-    parser.add_argument('--re_transcribe', 
-                        help='Include previously transcribed records in entity transcription, used for testing', 
+    parser.add_argument('--re_transcribe',
+                        help='Include previously transcribed records in entity transcription, used for testing',
                         action='store_true')
-    parser.add_argument('--tryAgain', 
-                        help='Try calling again numbers for which we failed to get location date info', 
+    parser.add_argument('--tryAgain',
+                        help='Try calling again numbers for which we failed to get location date info',
                         action='store_true')
-    parser.add_argument('--setCallingToNew', 
-                        help='Resets statuses stuck on calling to new', 
+    parser.add_argument('--setCallingToNew',
+                        help='Resets statuses stuck on calling to new',
                         action='store_true')
 
 
@@ -216,7 +222,7 @@ If you call with no arguments, all runners will start."""
         db.change_status(Statuses.extracting, Statuses.recording_ready)
         db.change_status(Statuses.extracting_done, Statuses.recording_ready)
 
-    
+
     runnables = [k for k, v in args.items() if v]
     if not runnables:
         # if none passed, run them all.

@@ -100,12 +100,16 @@ def extract_date_time_base(s, words_to_nums=False):
             dt_1 = dparser.parse(date, default=default_1)
             dt_2 = dparser.parse(date, default=default_2)
             #populate dictionary with date info
+            different = 0 #flags if dt_1 different than dt_2
             for key in d:
                 if dt_1.__getattribute__(key) == dt_2.__getattribute__(key):
                     d[key] = dt_1.__getattribute__(key)
-            
+                else:
+                	different = 1
             d["minute"] = dt_1.minute
 
+            if not different: #  if dt_1 == dt_2, create datetime column
+            	d["datetime"] = dt_1
             return d
         except:
             pass
