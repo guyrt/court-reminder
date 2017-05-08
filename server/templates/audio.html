@@ -1,0 +1,10 @@
+<html>
+<body>
+{% if filename %}
+<audio controls src="{{url_for('static', filename=filename)}}" type="wav">
+</audio>
+{% else %}
+No audio available for record.
+{% endif %}
+</body>
+</html>

@@ -1,6 +1,0 @@
-"""
-Expose flask app publicly
-"""
-
-from app import app
-app.run(host='0.0.0.0', port=80, debug=False, processes=4)
