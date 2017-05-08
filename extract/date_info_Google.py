@@ -35,7 +35,7 @@ def create_digits_for_date_parsing(s):
 
 
 def get_re_for_date_parsing():
-    """ 
+    """
     Basically matches strings beginning with a month, and ending in AM or PM
     In between the month and AM/PM, matching is non-greedy.
     Uses lookahead with grouping to find overlapping matches.
@@ -53,7 +53,7 @@ def get_re_for_date_parsing():
 
 def find_possible_date_times(s, words_to_nums):
     """ Example:
-    s = 'blah blah thirty one may st new york new york on april third, 
+    s = 'blah blah thirty one may st new york new york on april third,
          two thousand seventeen at one thirty PM blah blah'
     returns
     list('april 3rd, 2017 at 1:30 p.m.',
@@ -73,7 +73,7 @@ def find_possible_date_times(s, words_to_nums):
 
 def extract_date_time_base(s, words_to_nums=False):
     """ Example:
-    s = 'blah blah thirty one may st new york new york on april third, 
+    s = 'blah blah thirty one may st new york new york on april third,
          two thousand seventeen at one thirty PM blah blah'
     returns
     dict('year': 2017,
@@ -81,11 +81,11 @@ def extract_date_time_base(s, words_to_nums=False):
          'day': 3,
          'hour': 13,
          'minute': 30)
-    
+
     minute default to 0 if none found.
     All other keys default to None.
 
-    Loops through possible dates, returns as soon as dparser succeeds in 
+    Loops through possible dates, returns as soon as dparser succeeds in
     parsing date.
     """
     possible_dates = find_possible_date_times(s, words_to_nums)
@@ -127,7 +127,7 @@ def extract_date_time(s):
     return (extract_date_time_base(s) or
             extract_date_time_base(replace_homonyms(s), words_to_nums=True) or
             None)
-    
+
 
 if __name__ == "__main__":
     ss = [
