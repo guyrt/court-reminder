@@ -1,14 +1,13 @@
 # court-reminder
-Helping keep the Immigration Courts just
-
-
-# TODO
-Add a few actions:
-
-* Set state to error whenever error occurs.
-* Reset "calling" status to "new" to retry error calls. This isn't done automatically to avoid retrying the same call over and over.
-* Reset "transcribing" for errors.
+Calling things and transcribing.
 
 # Setup
+pip install -r requirement.txt
 
-
+# Run
+Two parts: 
+1. Running the runners (transcribing, calling, extracting)
+  - python runners.py
+2. Running the servers (twiml server, admin server)
+  - python run_server.py --twilio_prod
+  - python run_server.py --admin_prod
