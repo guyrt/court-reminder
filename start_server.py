@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     if args['twilio_prod']:
         from server.twilio_app import app
-        app.run(host='0.0.0.0', port=80, debug=False, processes=4)
+        app.run(host='0.0.0.0', port=8081, debug=False, processes=4)
 
     elif args['admin_prod']:     
         from server.admin_app import app

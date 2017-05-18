@@ -12,9 +12,9 @@ Secrets files (these contain API keys, lists of numbers for which you want info)
  You want to copy secrets sample and then fill in the blanks.
 
 # Run
-Two parts: 
+Two parts:
 1. Running the runners (transcribing, calling, extracting)
   - python ./court-reminder/runners.py
 2. Running the servers (twiml server, admin server)
-  - python run_server.py --twilio_prod
-  - python run_server.py --admin_prod
+  - python start_server.py --twilio_prod
+  - python start_server.py --admin_prod
