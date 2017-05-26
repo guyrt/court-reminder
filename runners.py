@@ -1,6 +1,7 @@
 import threading
 import uuid
 import sys
+import subprocess
 
 from datetime import datetime, timedelta
 from raven import Client
@@ -111,9 +112,13 @@ class TranscribeRunner(RunnerBase):
                 azure_blob,
                 local_filename,
             )
+            local_trim_filename = local_tmp_dir + "/trim_" + filename
+            subprocess.call(
+                ["sox", local_filename, local_trim_filename, "trim", "0", "59"]
+            )
             transcript, transcription_status = \
                 self.googleTranscriber.transcribe_audio_file_path(
-                    local_filename,
+                    local_trim_filename,
             )
         self.azure_table.update_transcript(
             partition_key,

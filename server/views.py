@@ -10,7 +10,9 @@ from wtforms.validators import DataRequired
 from wtforms import StringField
 
 from server.filters import EqualFilter
-from storage.models import Statuses
+from storage.models import Statuses, Database
+
+db = Database()
 
 
 class AinView(BaseModelView):
