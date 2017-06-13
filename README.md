@@ -6,10 +6,18 @@ Here we have instructions for running the program on a local machine and on an A
 # Running on local machine 
 ## Clone the court reminder repository
 git clone <court reminder>
+They also need git
+
 
 ## install python 3   
+### For ubuntu
 sudo apt-get update
 sudo apt-get install python-dev build-essential libssl-dev libffi-dev python-pip3 -y
+### For windows
+Install anaconda: https://www.continuum.io/downloads
+### For Mac
+???
+
 
 ## install modules that are needed
 sudo pip3 install -r requirements.txt
