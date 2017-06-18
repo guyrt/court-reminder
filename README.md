@@ -1,5 +1,5 @@
 All info at: https://github.com/guyrt/court-reminder/
-
+<testing> &lt testing &gt
 ## court-reminder - what it does
 Calling things and transcribing.  
 
@@ -54,12 +54,16 @@ The secrets files are located in the following folders:
   2. Storage -- ~\CourtHearings\court-reminder\storage\secrets.py
   We use an Azure storage account for this.  Here are instructions on how to set up an Azure storage account. 
   https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account#create-a-storage-account
-  You will want to set up one general table and one blob storage table
+  The deployment model is resource manager, and you will want to create two types of storage accounts, one General Purpose with performance tier standard and one Blob storage hot tier.
   
   3. Transcription  ~\CourtHearings\court-reminder\transcribe\secrets.py
   Here are instructions to get started with the google cloud speech API here:
   https://cloud.google.com/speech/docs/getting-started
-  
+  Create a new project.  Give it a name. 
+  Go to API manager, then click on credentials
+  Click create credentials, and choose Service Account Key
+  Choose your project as the service account and then download the json.  
+  Copy the json into secrets.py. Don't do anything for the Bing speech recognition credentials (we used to use Bing, then we switched to Google).  You don't need to enter anything in the preferred phrases line either.
   
 ## Run
 Two parts:
