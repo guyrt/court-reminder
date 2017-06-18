@@ -1,7 +1,5 @@
 All info at: https://github.com/guyrt/court-reminder/
-<testing> 
 
-&lt; testing &gt;
 ## court-reminder - what it does
 Calling things and transcribing.  
 
@@ -18,7 +16,7 @@ e.g. cd C:\Users\yourname\
 Then clone github repo:
 Go to https://github.com/guyrt/court-reminder/ and click on the green Clone or download button.  Copy the url. 
 In your terminal, type:
-git clone <url>
+git clone &lt; url &gt;
 
 ## install python 3 and some other things
 ### For ubuntu
@@ -99,10 +97,10 @@ Port range 8080. Name httpaccess
 Password for this will be in the secrets.py file in the server folder in the repo
 
 ## ssh into the azure account
-ssh <username>@<IP address>
+ssh &lt; username &gt; @ &lt; IP address &gt;
 
 ## Clone the court reminder repository
-git clone <court reminder repo>
+git clone &lt; court reminder repo &gt;
 
 ## install python 3   
 sudo apt-get update
@@ -121,22 +119,22 @@ The secrets files are located in the following folders:
  You want to copy secrets sample and then fill in the blanks.  You will need to set up your own API keys.
 
 ## create a screen to run the three different components of the project
-screen -S <screen_name>
+screen -S &lt; screen_name &gt;
 python3 runners.py
-<CTRL A-D> 
+&lt; CTRL A-D &gt;
 
-screen -S <screen_name>
+screen -S &lt; screen_name &gt;
 python3 start_server.py --twilio_prod
-<CTRL A-D>
+&lt; CTRL A-D &gt;
 
-screen -S <screen_name>
+screen -S &lt; screen_name &gt;
 python3 start_server.py --admin_prod
-<CTRL A-D>
+&lt; CTRL A-D &gt;
 
-[<CTRL A-D> exits but does not terminate the screen]
-[screen -r <screen_name> returns to the screen to check the status]
-[<CTRL D> terminates the screen]
+[&lt; CTRL A-D &gt; exits but does not terminate the screen]
+[screen -r &lt; screen_name &gt; returns to the screen to check the status]
+[&lt; CTRL D &gt; terminates the screen]
 
 ## Accessing the admin:
-<server_ip>:8080/admin
+&lt; server_ip &gt; :8080/admin
 
