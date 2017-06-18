@@ -1,5 +1,5 @@
 All info at: https://github.com/guyrt/court-reminder/
-<testing> &lt testing &gt
+<testing> &lt; testing &gt;
 ## court-reminder - what it does
 Calling things and transcribing.  
 
