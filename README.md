@@ -78,6 +78,9 @@ Three parts:
   - python start_server.py --twilio_prod
   - python start_server.py --admin_prod
 
+## Accessing the admin:
+&lt; server_ip &gt; :8080/admin
+
 # Running on Azure VM 
 
 ## set up azure account
