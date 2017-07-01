@@ -79,7 +79,7 @@ Three parts:
   - python start_server.py --admin_prod
 
 ## Accessing the admin:
-&lt; server_ip &gt; :8080/admin
+Type &lt; server_ip &gt; :8080/admin into your web browser
 
 # Running on Azure VM 
 
