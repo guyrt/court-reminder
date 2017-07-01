@@ -69,10 +69,12 @@ Note that the db_* variables shouldn't be used
   Copy the json into secrets.py. Don't do anything for the Bing speech recognition credentials (we used to use Bing, then we switched to Google).  You don't need to enter anything in the preferred phrases line either.
   
 ## Run
-Two parts:
-1. Running the runners (transcribing, calling, extracting)
+Three parts:
+1. Inserting the AINs into the database.
+- Have a file with one AIN per line.  Run insert.py &lt filename &gt .
+2. Running the runners (transcribing, calling, extracting)
   - python ./court-reminder/runners.py
-2. Running the servers (twiml server, admin server)
+3. Running the servers (twiml server, admin server)
   - python start_server.py --twilio_prod
   - python start_server.py --admin_prod
 
