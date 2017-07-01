@@ -83,6 +83,8 @@ Type &lt; server_ip &gt; :8080/admin into your web browser
 
 # Running on Azure VM 
 
+This is optional.  Only follow these instructions if you would prefer to run this program on a virtual machine instead of on your local computer.
+
 ## set up azure account
 Make an account with Microsoft azure.
 
