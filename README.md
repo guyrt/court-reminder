@@ -71,7 +71,7 @@ Note that the db_* variables shouldn't be used
 ## Run
 Three parts:
 1. Inserting the AINs into the database.
-- Have a file with one AIN per line.  Run insert.py &lt filename &gt .
+- Have a file with one AIN per line.  Run insert.py &lt; filename &gt; .
 2. Running the runners (transcribing, calling, extracting)
   - python ./court-reminder/runners.py
 3. Running the servers (twiml server, admin server)
