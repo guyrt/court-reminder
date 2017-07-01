@@ -54,7 +54,10 @@ The secrets files are located in the following folders:
   2. Storage -- ~\CourtHearings\court-reminder\storage\secrets.py
   We use an Azure storage account for this.  Here are instructions on how to set up an Azure storage account. 
   https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account#create-a-storage-account
-  The deployment model is resource manager, and you will want to create two types of storage accounts, one General Purpose with performance tier standard and one Blob storage hot tier.
+  The deployment model is resource manager, and you will want to create a General Purpose with performance tier standard.  Store the name of the storage_account in the storage_account variable in the secrets file.  Go to the access keys tab, and set Key1 in the variables blob_key and table_connection_string.
+Next, go to "blob store" from overview and create a container. Store the name of this container in the variable blob_container. 
+Next, set table_name = "courtreminder" in secrets.py. Our code will make the table for you. 
+Note that the db_* variables shouldn't be used
   
   3. Transcription  ~\CourtHearings\court-reminder\transcribe\secrets.py
   Here are instructions to get started with the google cloud speech API here:
