@@ -8,6 +8,7 @@ import uuid
 from utils.tempfilemanager import TmpFileCleanup
 from azure.storage.blob import BlockBlobService, ContentSettings
 from storage.secrets import blob_key, blob_accountname, blob_container, local_tmp_dir
+from utils.exceptions import TwilioResponseError
 
 class BlobManager(object):
 
@@ -16,7 +17,7 @@ class BlobManager(object):
         blob_service = BlockBlobService(account_name=blob_accountname, account_key=blob_key)
         response = requests.get(twilio_filename)
         if response.status_code != 200:
-            raise ValueError("Couldn't find Twilio file {0}".format(twilio_filename))
+            raise TwilioResponseError("Couldn't find Twilio file {0}".format(twilio_filename))
 
         suffix = "wav"
         short_file_name = "{0}.{1}".format(uuid.uuid4(), suffix)

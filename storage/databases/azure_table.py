@@ -120,6 +120,11 @@ class AzureTableDatabase(object):
             record.Status = new_status
             self.connection.update_entity(self.table_name, record)
 
+    def query(self, column, value, limit=1):
+        records = self.connection.query_entities(self.table_name, 
+              num_results=limit, filter="{0} eq '{1}'".format(column, value))
+        return records
+
     def retrieve_next_record_for_extraction(self):
         records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.transcribing_done))
         if not records.items:
@@ -183,6 +188,9 @@ class AzureTableDatabase(object):
         record.Status = Statuses.recording_ready
         record.CallUploadUrl = azure_path
         self._update_entity(record)
+
+    def delete_ain(self, ain):
+        return self.connection.delete_entity(self.table_name, ain, ain)
 
     def get_ain(self, ain):
         return self.connection.get_entity(self.table_name, ain, ain)
