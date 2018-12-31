@@ -1,7 +1,7 @@
 from flask_admin.model import BaseModelView
 from flask_admin.model.template import EndpointLinkRowAction, LinkRowAction
-from flask_admin.form import BaseForm 
-from flask_admin.form.rules import * 
+from flask_admin.form import BaseForm
+from flask_admin.form.rules import *
 from flask_admin import Admin, BaseView, expose
 from flask_admin.actions import action
 
@@ -19,22 +19,22 @@ class AinView(BaseModelView):
     statuses = dict(Statuses.__dict__)
 
     column_filters = ('Status', 'AlienID', 'Zipcode', 'Last Step Error')
-    named_filter_urls = True 
+    named_filter_urls = True
 
-    can_set_page_size = True 
+    can_set_page_size = True
     page_size = 20
 
     can_view_details = True
 
-    create_modal = True 
-    details_modal = True 
-    edit_modal = True 
+    create_modal = True
+    details_modal = True
+    edit_modal = True
 
     export_max_rows = 1000
     can_export = True
     export_types = ['csv', 'xlsx', 'json']
 
-    #column_editable_list = ('Status',) 
+    #column_editable_list = ('Status',)
     column_exclude_list = (
         'CallID', 'CallUploadUrl',
         'CallTimestamp', 'TranscribeTimestamp',
@@ -74,8 +74,8 @@ class AinView(BaseModelView):
 
     def scaffold_list_columns(self):
         return [
-            'PartitionKey', 'Status', 'Confidence_location', 
-            'City', 'State', 'Zipcode', 
+            'PartitionKey', 'Status', 'Confidence_location',
+            'City', 'State', 'Zipcode',
             'day', 'hour', 'minute', 'month', 'year',
             'CallTranscript', 'LastErrorStep',
             'CallID', 'CallUploadUrl',
@@ -87,7 +87,7 @@ class AinView(BaseModelView):
 
     def init_search(self):
         return False
-    
+
     def scaffold_filters(self, name):
         return [EqualFilter(name, name)]
 
@@ -104,26 +104,26 @@ class AinView(BaseModelView):
         return db.get_ain(id)
 
     def delete_model(self, model):
-        return db.delete_ain(model.PartitionKey) 
+        return db.delete_ain(model.PartitionKey)
 
     def create_model(self, form):
-        ain = form.PartitionKey.data 
-        db.upload_new_requests([ain]) 
+        ain = form.PartitionKey.data
+        db.upload_new_requests([ain])
         return self.get_one(ain)
-     
+
     def update_model(self, form, model):
         status = form.Status.data
         model.Status = status
         db._update_entity(model)
         return True
-    
+
     def scaffold_form(self):
         class AinForm(BaseForm):
             PartitionKey = StringField('Alien ID')
             Status = SelectField('Status', choices=self.statuses)
             CallTranscript = StringField('CallTranscript')
 
-        return AinForm 
+        return AinForm
 
     @action('reset_status', 'Reset Status', 'Are you sure you want to reset the selected records?')
     def action_upload(self, ids):
@@ -131,4 +131,3 @@ class AinView(BaseModelView):
             flash('Not implemented yet')
         except Exception as ex:
             flash('Failed to reset the status', 'error')
-

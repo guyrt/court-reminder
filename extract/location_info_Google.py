@@ -1,6 +1,6 @@
 import re
 
-from uszipcode import ZipcodeSearchEngine
+from uszipcode import SearchEngine as ZipcodeSearchEngine
 
 from extract.utils import state_abbrev as states
 

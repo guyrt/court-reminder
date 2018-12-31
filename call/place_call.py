@@ -3,7 +3,7 @@ Place a Twilio phone call and record the outcome.
 """
 
 from call.secrets import *
-from twilio.rest import TwilioRestClient
+from twilio.rest import Client as TwilioRestClient
 import time
 import requests
 
@@ -12,7 +12,13 @@ from utils.exceptions import TemporaryChillError
 
 class TwilioCallWrapper(object):
 
-    callback_url = 'http://13.68.220.163/record.xml'
+    # use echo below to return whatever twiml is sent to it:
+    # https://www.twilio.com/labs/twimlets/echo
+    # callback_url = 'http://13.68.220.163/record.xml'
+    callback_url = "https://twimlets.com/echo?Twiml=%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%0A%3CResponse%3E%0A%3CRecord%20timeout%3D%2210%22%20maxLength%3D%2290%22%20trim%3D%22do-not-trim%22%20action%3D%22https%3A%2F%2Fbit.ly%2F2s1ngCg%22%20%2F%3E%0A%3C%2FResponse%3E&"
+
+    # base is mentioned here: https://www.twilio.com/docs/voice/api/recording
+    twilio_uri_base = "https://api.twilio.com"
 
     def __init__(self, call_placed_callback=None, call_done_callback=None):
         self.call_placed_callback = call_placed_callback
@@ -42,24 +48,37 @@ class TwilioCallWrapper(object):
         Send 1  [why?]
         Wait for 10 seconds
         Send 1  [trick into a repeat so we catch the full message.]
+
+        Note: sequence must be at most 32 digits long:
+        https://www.twilio.com/docs/voice/api/call#create-a-call-resource
+        (Can use <Play> in twiml instead)
         """
+
         return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1"
         #return "1w1ww{case_number}ww1w1w1".format(case_number=case_number) + ("w" * 5 * 2) + "1" #If warning of maintenance
 
-
     def place_call(self, case_number):
         send_digits = self.build_dtmf_sequence(case_number)
-        call = self._client.calls.create(to=to_phone, from_=from_phone, url=self.callback_url, record=True, send_digits=send_digits)
+        call = self._client.calls.create(to=to_phone, from_=from_phone, url=self.callback_url, send_digits=send_digits)
         if self.call_placed_callback:
             self.call_placed_callback(case_number, call.sid)
         self._handle_call(case_number, call.sid)
 
+    def _get_twilio_uri(self, uri_from_recording):
+        # recording.uri is:
+        # -- relative to twilio_uri_base above, and
+        # -- ends in ".json" which needs to be removed
+        return self.twilio_uri_base + uri_from_recording.split(".json")[0]
+
     def _handle_call(self, case_number, call_sid):
         time.sleep(90)  # sleep for a bit to let the call happen
-        call = self._client.calls.get(call_sid)
+        call = self._client.calls.get(call_sid).fetch()
 
         if call.status != 'completed':
-            call.hangup()
+            # call.hangup() no longer works
+            # see: https://www.twilio.com/docs/voice/tutorials/how-to-modify-calls-in-progress-python
+            call.update(status='completed')
+
         call_duration = call.duration
 
         # get a fresh call.
@@ -67,7 +86,20 @@ class TwilioCallWrapper(object):
         if not recordings:
             raise TemporaryChillError(60 * 5)
         recording = recordings[0]
-        recording_uri = recording.uri
+        recording_uri = self._get_twilio_uri(recording.uri)
 
         if self.call_done_callback:
             self.call_done_callback(case_number, call_duration=call_duration, recording_uri=recording_uri)
+
+        # delete the recording and the call from twilio
+        self._cleanup_after_call(call_sid)
+
+    def _cleanup_after_call(self, call_sid):
+        call = self._client.calls.get(call_sid).fetch()
+
+        # delete recordings
+        for recording in call.recordings.list():
+            recording.delete()
+
+        # delete the call itself
+        call.delete()

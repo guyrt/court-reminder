@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from azure.common import AzureConflictHttpError
-from azure.storage.table import TableService
+from azure.cosmosdb.table.tableservice import TableService
 from storage.secrets import storage_account, table_connection_string, table_name
 from storage.models import Statuses, NoRecordsToProcessError
 from transcribe.transcribe import TranscriptionStatus
@@ -17,7 +17,8 @@ class AzureTableDatabase(object):
         self.connection.update_entity(self.table_name, record)
 
     def create_table(self):
-        self.connection.create_table(self.table_name)
+        if not self.connection.exists(self.table_name):
+            self.connection.create_table(self.table_name)
 
     def raw_table(self, limit=100):
         """
@@ -121,7 +122,7 @@ class AzureTableDatabase(object):
             self.connection.update_entity(self.table_name, record)
 
     def query(self, column, value, limit=1):
-        records = self.connection.query_entities(self.table_name, 
+        records = self.connection.query_entities(self.table_name,
               num_results=limit, filter="{0} eq '{1}'".format(column, value))
         return records
 
