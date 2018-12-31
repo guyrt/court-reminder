@@ -64,9 +64,11 @@ class AinView(BaseModelView):
         CallTranscript='Call Transcript',
         CallID='Call ID',
         LastModified='Last Modified',
-	CallTimestamp='Call Timestamp',
+        CallTimestamp='Call Timestamp',
         TranscribeTimestamp='Transcribe Timestamp',
         CallUploadUrl='Call Upload Url',
+        CourtHearingDate='Court Hearing Date',
+        LocationConfidence='Location Confidence',
     )
 
     def get_pk_value(self, model):
@@ -74,9 +76,9 @@ class AinView(BaseModelView):
 
     def scaffold_list_columns(self):
         return [
-            'PartitionKey', 'Status', 'Confidence_location',
+            'PartitionKey', 'Status', 'LocationConfidence',
             'City', 'State', 'Zipcode',
-            'day', 'hour', 'minute', 'month', 'year',
+            'CourtHearingDate',
             'CallTranscript', 'LastErrorStep',
             'CallID', 'CallUploadUrl',
             'CallTimestamp', 'LastModified', 'TranscribeTimestamp',

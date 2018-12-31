@@ -137,16 +137,6 @@ class AzureTableDatabase(object):
 
         return record.CallTranscript, record.PartitionKey
 
-    def update_location_date(self, partition_key, location_dict, date_dict):
-        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
-        if location_dict and date_dict:
-            record.update(**location_dict)
-            record.update(**date_dict)
-            record.Status = Statuses.extracting_done
-        else:
-            record.Status = Statuses.failed_to_return_info
-        self._update_entity(record)
-
     def retrieve_next_record_for_extraction(self):
         records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.transcribing_done))
         if not records.items:
@@ -158,9 +148,12 @@ class AzureTableDatabase(object):
 
         return record.CallTranscript, record.PartitionKey
 
-    def update_location_date(self, partition_key, location, date):
-        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
-        record.CourtHearingLocation = location
+    def update_location_date(self, case_number, city, location_confidence, state, zipcode, date):
+        record = self.connection.get_entity(self.table_name, case_number, case_number)
+        record.City = city
+        record.LocationConfidence = location_confidence
+        record.State = state
+        record.Zipcode = zipcode
         record.CourtHearingDate = date
         record.Status = Statuses.extracting_done
         self.connection.update_entity(self.table_name, record)

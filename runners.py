@@ -153,8 +153,7 @@ class EntityRunner(RunnerBase):
         print("Location for {0}: {1}".format(partition_key, str(location_dict)))
         date_dict = extract_date_time(transcript)
         print("Date, time for {0}: {1}".format(partition_key, str(date_dict)))
-        self.azure_table.update_location_date(partition_key,
-            location_dict, date_dict)
+        self._process_location_date(partition_key, location_dict, date_dict)
         if location_dict == None or date_dict == None:
             self.consec_error_count += 1
             raise EntityExtractionError(
@@ -162,6 +161,32 @@ class EntityRunner(RunnerBase):
                 .format(partition_key))
         else:
             self.consec_error_count = 0
+
+    def _process_location_date(self, case_number, location_dict, date_dict):
+        # location
+        city = None
+        location_confidence = None
+        state = None
+        zipcode = None
+        if location_dict is not None:
+            city = location_dict["City"]
+            location_confidence = location_dict["Confidence_location"]
+            state = location_dict["State"]
+            zipcode = location_dict["Zipcode"]
+
+        # date
+        date = None
+        if date_dict is not None:
+            year = date_dict["year"]
+            month = date_dict["month"]
+            day = date_dict["day"]
+            hour = date_dict["hour"] or 0
+            minute = date_dict["minute"] or 0
+            # only report a date if we found year, month and day
+            if year is not None and month is not None and day is not None:
+                date = datetime(year=year, month=month, day=day, hour=hour, minute=minute)
+
+        self.azure_table.update_location_date(case_number, city, location_confidence, state, zipcode, date)
 
 
 class ErrorRecovery(RunnerBase):
