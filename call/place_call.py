@@ -14,11 +14,13 @@ class TwilioCallWrapper(object):
 
     # use echo below to return whatever twiml is sent to it:
     # https://www.twilio.com/labs/twimlets/echo
-    # callback_url = 'http://13.68.220.163/record.xml'
-    callback_url = "https://twimlets.com/echo?Twiml=%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%0A%3CResponse%3E%0A%3CRecord%20timeout%3D%2210%22%20maxLength%3D%2290%22%20trim%3D%22do-not-trim%22%20action%3D%22https%3A%2F%2Fbit.ly%2F2s1ngCg%22%20%2F%3E%0A%3C%2FResponse%3E&"
+    # we will specify the digits and length below
+    callback_url = "http://twimlets.com/echo?Twiml=%3CResponse%3E%0A%3CPlay%20digits%3D%22{digits}%22%2F%3E%0A%3CPause%20length%3D%22{length}%22%2F%3E%0A%3CHangup%2F%3E%0A%3C%2FResponse%3E&"
 
     # base is mentioned here: https://www.twilio.com/docs/voice/api/recording
     twilio_uri_base = "https://api.twilio.com"
+
+    call_length_seconds = 45
 
     def __init__(self, call_placed_callback=None, call_done_callback=None):
         self.call_placed_callback = call_placed_callback
@@ -54,12 +56,19 @@ class TwilioCallWrapper(object):
         (Can use <Play> in twiml instead)
         """
 
-        return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1"
-        #return "1w1ww{case_number}ww1w1w1".format(case_number=case_number) + ("w" * 5 * 2) + "1" #If warning of maintenance
+        # with repeat:
+        #return "1ww{case_number}ww1ww1ww1".format(case_number=case_number) + ("w" * 5 * 2) + "1"
+
+        # if warning of maintenance:
+        # "1w1ww{case_number}ww1w1w1".format(case_number=case_number) + ("w" * 5 * 2) + "1"
+
+        return "1ww{case_number}ww1ww1ww1".format(case_number=case_number)
+
 
     def place_call(self, case_number):
         send_digits = self.build_dtmf_sequence(case_number)
-        call = self._client.calls.create(to=to_phone, from_=from_phone, url=self.callback_url, send_digits=send_digits)
+        callback_url = self.callback_url.format(digits=send_digits, length=self.call_length_seconds)
+        call = self._client.calls.create(to=to_phone, from_=from_phone, url=callback_url, record=True)
         if self.call_placed_callback:
             self.call_placed_callback(case_number, call.sid)
         self._handle_call(case_number, call.sid)
