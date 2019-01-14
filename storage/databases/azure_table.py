@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from azure.common import AzureConflictHttpError
-from azure.storage.table import TableService
+from azure.cosmosdb.table.tableservice import TableService
 from storage.secrets import storage_account, table_connection_string, table_name
 from storage.models import Statuses, NoRecordsToProcessError
 from transcribe.transcribe import TranscriptionStatus
@@ -17,7 +17,8 @@ class AzureTableDatabase(object):
         self.connection.update_entity(self.table_name, record)
 
     def create_table(self):
-        self.connection.create_table(self.table_name)
+        if not self.connection.exists(self.table_name):
+            self.connection.create_table(self.table_name)
 
     def raw_table(self, limit=100):
         """
@@ -121,7 +122,7 @@ class AzureTableDatabase(object):
             self.connection.update_entity(self.table_name, record)
 
     def query(self, column, value, limit=1):
-        records = self.connection.query_entities(self.table_name, 
+        records = self.connection.query_entities(self.table_name,
               num_results=limit, filter="{0} eq '{1}'".format(column, value))
         return records
 
@@ -136,15 +137,26 @@ class AzureTableDatabase(object):
 
         return record.CallTranscript, record.PartitionKey
 
-    def update_location_date(self, partition_key, location_dict, date_dict):
-        record = self.connection.get_entity(self.table_name, partition_key, partition_key)
-        if location_dict and date_dict:
-            record.update(**location_dict)
-            record.update(**date_dict)
-            record.Status = Statuses.extracting_done
-        else:
-            record.Status = Statuses.failed_to_return_info
-        self._update_entity(record)
+    def retrieve_next_record_for_extraction(self):
+        records = self.connection.query_entities(self.table_name, num_results=1, filter="Status eq '{0}'".format(Statuses.transcribing_done))
+        if not records.items:
+            raise NoRecordsToProcessError()
+
+        record = records.items[0]
+        record.Status = Statuses.extracting
+        self.connection.update_entity(self.table_name, record)
+
+        return record.CallTranscript, record.PartitionKey
+
+    def update_location_date(self, case_number, city, location_confidence, state, zipcode, date):
+        record = self.connection.get_entity(self.table_name, case_number, case_number)
+        record.City = city
+        record.LocationConfidence = location_confidence
+        record.State = state
+        record.Zipcode = zipcode
+        record.CourtHearingDate = date
+        record.Status = Statuses.extracting_done
+        self.connection.update_entity(self.table_name, record)
 
     def upload_new_requests(self, request_ids):
         """

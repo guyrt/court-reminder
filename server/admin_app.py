@@ -31,11 +31,13 @@ def audio():
     ain = request.args.get('id')
     azure_path = db.get_ain(ain).get('CallUploadUrl')
     if azure_path:
+        file_root = os.path.join(app.root_path, 'static')
+        if not os.path.exists(file_root):
+            os.makedirs(file_root)
         filename = ain + '.wav'
-        path = os.path.join('static', filename)
-        blob_service.get_blob_to_path(container_name=blob_container, 
+        path = os.path.join(file_root, filename)
+        blob_service.get_blob_to_path(container_name=blob_container,
               blob_name=azure_path, file_path=path)
     else:
         filename = None
     return render_template('audio.html', filename=filename)
-

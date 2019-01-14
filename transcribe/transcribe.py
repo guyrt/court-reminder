@@ -53,11 +53,15 @@ class GoogleTranscriber(object):
         with sr.AudioFile(audio_file_path) as source:
             audio_object = r.record(source)
             try:
+                # hitting this error with SpeechRecognition module if preferred
+                # phrases is not None
+                # https://github.com/Uberi/speech_recognition/issues/334
                 transcript = r.recognize_google_cloud(
                     audio_data=audio_object,
                     credentials_json=self.google_creds,
                     language=self.language,
-                    preferred_phrases=self.preferred_phrases,
+                    # preferred_phrases=self.preferred_phrases,
+                    preferred_phrases=None,
                     show_all=False,
                 )
             except sr.UnknownValueError as e:
